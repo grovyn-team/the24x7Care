@@ -1,0 +1,1 @@
+export { HealthcareScene } from './HealthcareScene';

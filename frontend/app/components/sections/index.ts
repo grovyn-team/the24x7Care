@@ -1,0 +1,10 @@
+export { Header } from './Header';
+export { Hero } from './Hero';
+export { Statistics } from './Statistics';
+export { Services } from './Services';
+export { WhyTrustUs } from './WhyTrustUs';
+export { PricingPlans } from './PricingPlans';
+export { CallToAction } from './CallToAction';
+export { Footer } from './Footer';
+export { ConsultationForm } from './ConsultationForm';
+export { TestimonialsCarousel } from './TestimonialsCarousel';
