@@ -17,12 +17,18 @@ export class AdminService {
   ) {}
 
   async getDashboardStats() {
-    const [totalEnquiries, newEnquiries, totalDoctors, totalServices] =
+    const [totalEnquiries, newEnquiries, totalDoctors, totalServices, recentEnquiries] =
       await Promise.all([
         this.enquiryModel.countDocuments().exec(),
         this.enquiryModel.countDocuments({ status: 'new' }).exec(),
         this.doctorModel.countDocuments().exec(),
         this.serviceModel.countDocuments().exec(),
+        this.enquiryModel
+          .find()
+          .populate('assignee', 'name employee_id')
+          .sort({ createdAt: -1 })
+          .limit(10)
+          .exec(),
       ]);
 
     return {
@@ -30,6 +36,7 @@ export class AdminService {
       newEnquiries,
       totalDoctors,
       totalServices,
+      recentEnquiries,
     };
   }
 }

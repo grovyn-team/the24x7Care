@@ -41,6 +41,7 @@ class ApiClient {
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       ...options,
       headers,
+      signal: options.signal,
     });
 
     if (!response.ok) {
@@ -51,8 +52,8 @@ class ApiClient {
     return response.json();
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get<T>(endpoint: string, signal?: AbortSignal): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET', signal });
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {
@@ -113,7 +114,7 @@ export const enquiriesApi = {
 };
 
 export const adminApi = {
-  getDashboard: () => api.get('/admin/dashboard'),
+  getDashboard: (signal?: AbortSignal) => api.get('/admin/dashboard', signal),
   getEnquiries: (page = 1, limit = 30, status?: string, assignee?: string) => {
     const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
     if (status) params.append('status', status);
@@ -134,6 +135,7 @@ export const adminApi = {
   getPatients: (page = 1, limit = 30) => api.get(`/patients?page=${page}&limit=${limit}`),
   getAllPatients: () => api.get('/patients/export/all'),
   createDoctor: (data: any) => api.post('/doctors', data),
+  createDoctorsBulk: (doctors: any[]) => api.post('/doctors/bulk', { doctors }),
   updateDoctor: (id: string, data: any) => api.patch(`/doctors/${id}`, data),
   deleteDoctor: (id: string) => api.delete(`/doctors/${id}`),
   getServices: () => api.get('/services'),
@@ -144,4 +146,32 @@ export const adminApi = {
   createSocialMedia: (data: any) => api.post('/social-media', data),
   updateSocialMedia: (id: string, data: any) => api.patch(`/social-media/${id}`, data),
   deleteSocialMedia: (id: string) => api.delete(`/social-media/${id}`),
+};
+
+export const doctorApi = {
+  getMyEnquiries: (page = 1, limit = 30) => api.get(`/doctors/my-enquiries?page=${page}&limit=${limit}`),
+  getMyProfile: () => api.get('/doctors/me/profile'),
+  updateMyProfile: (data: any) => api.patch('/doctors/me/profile', data),
+  updateMyAvailability: (availability: any[]) => api.patch('/doctors/me/availability', { availability }),
+  updateEnquiryStatus: (id: string, status: string) => api.patch(`/enquiries/${id}`, { status }),
+  uploadAvatar: async (file: File): Promise<{ url: string }> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(`${BASE_URL}/doctors/me/upload-avatar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+      throw new Error(error.message || 'Upload failed');
+    }
+    
+    return response.json();
+  },
 };

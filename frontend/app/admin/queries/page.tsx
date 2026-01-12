@@ -165,16 +165,16 @@ export default function QueriesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 lg:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Queries</h1>
-          <p className="text-gray-600 mt-1">Manage patient enquiries</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Queries</h1>
+          <p className="text-gray-600 mt-1 text-sm lg:text-base">Manage patient enquiries</p>
         </div>
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="flex items-center gap-2 bg-teal-700 text-white px-4 py-2 rounded-lg hover:bg-teal-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 bg-teal-700 text-white px-3 lg:px-4 py-2 rounded-lg hover:bg-teal-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
         >
           {exporting ? (
             <>
@@ -207,26 +207,27 @@ export default function QueriesPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-700"></div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px] divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Patient
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Mobile
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Message
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Assignee
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -234,26 +235,26 @@ export default function QueriesPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {enquiries.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-3 lg:px-6 py-8 text-center text-gray-500">
                     No enquiries found
                   </td>
                 </tr>
               ) : (
                 enquiries.map((enquiry) => (
                   <tr key={enquiry._id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {enquiry.patient_name}
                       </div>
                       <div className="text-sm text-gray-500">Age: {enquiry.patient_age}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {enquiry.patient_mob}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                    <td className="px-3 lg:px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                       {enquiry.message}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                           enquiry.status
@@ -262,10 +263,10 @@ export default function QueriesPage() {
                         {enquiry.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {enquiry.assignee?.name || 'Unassigned'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <button
                         onClick={() => handleEdit(enquiry)}
                         className="text-teal-700 hover:text-teal-800 font-medium mr-3 transition-colors"
@@ -284,26 +285,27 @@ export default function QueriesPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       {!loading && totalPages > 1 && (
-        <div className="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 px-6 py-4 shadow-lg z-40">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
+        <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-white border-t border-gray-200 px-4 lg:px-6 py-4 shadow-lg z-40">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
               Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
               <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
               <span className="font-medium">{total}</span> results
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center gap-2 sm:gap-3">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Previous
               </button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum;
                   if (totalPages <= 5) {
@@ -320,7 +322,7 @@ export default function QueriesPage() {
                     <button
                       key={pageNum}
                       onClick={() => setPage(pageNum)}
-                      className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      className={`px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                         page === pageNum
                           ? 'bg-teal-700 text-white'
                           : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
@@ -331,13 +333,13 @@ export default function QueriesPage() {
                   );
                 })}
               </div>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">
                 Page {page} of {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
               </button>

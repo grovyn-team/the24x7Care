@@ -1,69 +1,56 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { adminApi } from '../../lib/api';
+import { useEffect, useState } from 'react';
+import { doctorApi } from '../../lib/api';
 
-interface DashboardStats {
-  totalEnquiries: number;
-  newEnquiries: number;
-  totalDoctors: number;
-  totalServices: number;
-  recentEnquiries?: RecentEnquiry[];
-}
-
-interface RecentEnquiry {
+interface Enquiry {
   _id: string;
   patient_name: string;
-  patient_mob: string;
+  patient_age: number;
   message: string;
   status: string;
-  assignee?: {
-    _id: string;
-    name: string;
-    employee_id: string;
-  } | null;
   createdAt: string;
 }
 
-export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+interface EnquiriesResponse {
+  data: Enquiry[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export default function DoctorDashboardPage() {
+  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [loading, setLoading] = useState(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    new: 0,
+    viewed: 0,
+    completed: 0,
+  });
 
   useEffect(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    const fetchStats = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const data = await adminApi.getDashboard(abortController.signal) as DashboardStats;
+        const response = await doctorApi.getMyEnquiries(1, 100) as EnquiriesResponse;
+        setEnquiries(response.data || []);
         
-        if (!abortController.signal.aborted) {
-          setStats(data);
-        }
-      } catch (error: any) {
-        if (error.name !== 'AbortError' && !abortController.signal.aborted) {
-          console.error('Failed to fetch dashboard stats:', error);
-        }
+        const total = response.total || 0;
+        const newCount = response.data?.filter((e) => e.status === 'new').length || 0;
+        const viewedCount = response.data?.filter((e) => e.status === 'viewed').length || 0;
+        const completedCount = response.data?.filter((e) => e.status === 'completed').length || 0;
+        
+        setStats({ total, new: newCount, viewed: viewedCount, completed: completedCount });
+      } catch (error) {
+        console.error('Failed to fetch enquiries:', error);
       } finally {
-        if (!abortController.signal.aborted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
-    fetchStats();
-
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
+    fetchData();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -101,33 +88,21 @@ export default function DashboardPage() {
     <div className="space-y-4 lg:space-y-6">
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1 text-sm lg:text-base">Welcome to the admin panel</p>
+        <p className="text-gray-600 mt-1 text-sm lg:text-base">Welcome to your doctor portal</p>
       </div>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Users"
-          value={stats?.totalEnquiries || 0}
-        />
-        <StatCard
-          title="Pending Queries"
-          value={stats?.newEnquiries || 0}
-        />
-        <StatCard
-          title="Active Services"
-          value={stats?.totalServices || 0}
-        />
-        <StatCard
-          title="Total Doctors"
-          value={stats?.totalDoctors || 0}
-        />
+        <StatCard title="Total Queries" value={stats.total} />
+        <StatCard title="New Queries" value={stats.new} />
+        <StatCard title="In Progress" value={stats.viewed} />
+        <StatCard title="Completed" value={stats.completed} />
       </div>
 
-      {/* Recent Bookings */}
+      {/* Recent Queries */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
-        <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">Recent Bookings</h2>
-        {stats?.recentEnquiries && stats.recentEnquiries.length > 0 ? (
+        <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">Recent Queries</h2>
+        {enquiries.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px] divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -135,17 +110,11 @@ export default function DashboardPage() {
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Patient
                   </th>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mobile
-                  </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Message
                   </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
-                  </th>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
-                    Assigned To
                   </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Date
@@ -153,13 +122,13 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {stats.recentEnquiries.map((enquiry) => (
+                {enquiries.slice(0, 10).map((enquiry) => (
                   <tr key={enquiry._id} className="hover:bg-gray-50">
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {enquiry.patient_name}
-                    </td>
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {enquiry.patient_mob}
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {enquiry.patient_name}
+                      </div>
+                      <div className="text-sm text-gray-500">Age: {enquiry.patient_age}</div>
                     </td>
                     <td className="px-3 lg:px-6 py-4 text-sm text-gray-500 hidden md:table-cell max-w-xs truncate">
                       {enquiry.message}
@@ -173,9 +142,6 @@ export default function DashboardPage() {
                         {enquiry.status}
                       </span>
                     </td>
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-                      {enquiry.assignee ? enquiry.assignee.name : 'Unassigned'}
-                    </td>
                     <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                       {formatDate(enquiry.createdAt)}
                     </td>
@@ -186,7 +152,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="flex items-center justify-center h-64 text-gray-500">
-            <p>No recent bookings found</p>
+            <p>No queries assigned yet</p>
           </div>
         )}
       </div>

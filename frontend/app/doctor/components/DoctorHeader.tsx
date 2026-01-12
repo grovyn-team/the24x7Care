@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
-interface AdminHeaderProps {
+interface DoctorHeaderProps {
   onMenuToggle: () => void;
   isMenuOpen: boolean;
 }
 
-export default function AdminHeader({ onMenuToggle, isMenuOpen }: AdminHeaderProps) {
+export default function DoctorHeader({ onMenuToggle, isMenuOpen }: DoctorHeaderProps) {
   const { user, logout } = useAuth();
 
   return (

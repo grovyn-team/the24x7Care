@@ -12,6 +12,7 @@ import { LeadershipTeamModule } from './leadership-team/leadership-team.module';
 import { PaymentModule } from './payment/payment.module';
 import { AdminModule } from './admin/admin.module';
 import { HeroDiscountModule } from './hero-discount/hero-discount.module';
+import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { HeroDiscountModule } from './hero-discount/hero-discount.module';
     PaymentModule,
     AdminModule,
     HeroDiscountModule,
+    CloudinaryModule,
   ],
 })
 export class AppModule {}

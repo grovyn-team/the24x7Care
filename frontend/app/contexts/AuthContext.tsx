@@ -17,6 +17,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isDoctor: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,16 +43,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...response.user,
         role: response.user.role as 'admin' | 'doctor',
       });
-      router.push('/admin/dashboard');
+      // Redirect based on role
+      if (response.user.role === 'admin') {
+        router.push('/admin/dashboard');
+      } else if (response.user.role === 'doctor') {
+        router.push('/doctor/dashboard');
+      } else {
+        router.push('/admin/dashboard');
+      }
     } catch (error: any) {
       throw new Error(error.message || 'Login failed');
     }
   };
 
   const logout = () => {
+    const currentRole = user?.role;
     authApi.logout();
     setUser(null);
-    router.push('/admin/login');
+    if (currentRole === 'doctor') {
+      router.push('/doctor/login');
+    } else {
+      router.push('/admin/login');
+    }
   };
 
   return (
@@ -63,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
+        isDoctor: user?.role === 'doctor',
       }}
     >
       {children}

@@ -82,4 +82,38 @@ export class DoctorsService {
       .sort({ createdAt: -1 })
       .exec();
   }
+
+  async createBulk(doctorsData: CreateDoctorDto[]) {
+    const createdDoctors = [];
+    const errors = [];
+
+    for (const doctorData of doctorsData) {
+      try {
+        const doctor = new this.doctorModel(doctorData);
+        await doctor.save();
+        createdDoctors.push(doctor);
+      } catch (error: any) {
+        errors.push({
+          data: doctorData,
+          error: error.message || 'Failed to create doctor',
+        });
+      }
+    }
+
+    return {
+      created: createdDoctors,
+      errors,
+      totalCreated: createdDoctors.length,
+      totalErrors: errors.length,
+    };
+  }
+
+  async updateAvailability(employeeId: string, availability: any[]) {
+    const doctor = await this.doctorModel.findOne({ employee_id: employeeId }).exec();
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with employee ID ${employeeId} not found`);
+    }
+    doctor.availability = availability;
+    return doctor.save();
+  }
 }

@@ -34,6 +34,24 @@ export class Doctor {
 
   @Prop({ default: null })
   avatar_url: string;
+
+  @Prop({
+    type: [
+      {
+        day: { type: String, enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] },
+        startTime: { type: String, default: null },
+        endTime: { type: String, default: null },
+        isAvailable: { type: Boolean, default: true },
+      },
+    ],
+    default: [],
+  })
+  availability: Array<{
+    day: string;
+    startTime: string | null;
+    endTime: string | null;
+    isAvailable: boolean;
+  }>;
 }
 
 export const DoctorSchema = SchemaFactory.createForClass(Doctor);

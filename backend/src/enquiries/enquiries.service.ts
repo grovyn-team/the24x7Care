@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Enquiry, EnquiryDocument } from '../schemas/enquiry.schema';
 import { Patient, PatientDocument } from '../schemas/patient.schema';
+import { Doctor, DoctorDocument } from '../schemas/doctor.schema';
 import { CreateEnquiryDto } from './dto/create-enquiry.dto';
 import { UpdateEnquiryDto } from './dto/update-enquiry.dto';
 import { EnquiryStatus } from '../schemas/enquiry.schema';
@@ -12,6 +13,7 @@ export class EnquiriesService {
   constructor(
     @InjectModel(Enquiry.name) private enquiryModel: Model<EnquiryDocument>,
     @InjectModel(Patient.name) private patientModel: Model<PatientDocument>,
+    @InjectModel(Doctor.name) private doctorModel: Model<DoctorDocument>,
   ) {}
 
   async create(createEnquiryDto: CreateEnquiryDto) {
@@ -109,12 +111,50 @@ export class EnquiriesService {
       throw new NotFoundException(`Enquiry with ID ${id} not found`);
     }
 
+    const enquiryId = new Types.ObjectId(id);
+    const oldAssigneeId = enquiry.assignee ? enquiry.assignee.toString() : null;
+    const newAssigneeId = updateEnquiryDto.assignee || null;
+
+    // Update the enquiry
     if (updateEnquiryDto.assignee) {
       updateEnquiryDto.assignee = new Types.ObjectId(updateEnquiryDto.assignee) as any;
     }
 
     Object.assign(enquiry, updateEnquiryDto);
-    return enquiry.save();
+    const savedEnquiry = await enquiry.save();
+
+    // Update doctor's queries_assigned array
+    // Remove from old assignee if exists
+    if (oldAssigneeId && oldAssigneeId !== newAssigneeId) {
+      await this.doctorModel.findByIdAndUpdate(
+        oldAssigneeId,
+        { $pull: { queries_assigned: enquiryId } },
+        { new: true }
+      ).exec();
+    }
+
+    if (newAssigneeId && newAssigneeId !== oldAssigneeId) {
+      const doctor = await this.doctorModel.findById(newAssigneeId).exec();
+      if (doctor) {
+        if (!doctor.queries_assigned) {
+          doctor.queries_assigned = [];
+        }
+        if (!doctor.queries_assigned.some((queryId: Types.ObjectId) => queryId.toString() === enquiryId.toString())) {
+          doctor.queries_assigned.push(enquiryId);
+          await doctor.save();
+        }
+      }
+    }
+
+    if (!newAssigneeId && oldAssigneeId) {
+      await this.doctorModel.findByIdAndUpdate(
+        oldAssigneeId,
+        { $pull: { queries_assigned: enquiryId } },
+        { new: true }
+      ).exec();
+    }
+
+    return savedEnquiry.populate('assignee', 'name specialization employee_id');
   }
 
   async remove(id: string) {

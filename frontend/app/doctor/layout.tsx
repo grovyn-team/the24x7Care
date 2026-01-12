@@ -3,28 +3,30 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
-import AdminSidebar from './components/AdminSidebar';
-import AdminHeader from './components/AdminHeader';
+import DoctorSidebar from './components/DoctorSidebar';
+import DoctorHeader from './components/DoctorHeader';
 
-export default function AdminLayout({
+export default function DoctorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading, user, isDoctor } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!loading) {
-      if (!isAuthenticated && pathname !== '/admin/login') {
-        router.push('/admin/login');
-      } else if (isAuthenticated && pathname === '/admin/login') {
+      if (!isAuthenticated && pathname !== '/doctor/login') {
+        router.push('/doctor/login');
+      } else if (isAuthenticated && !isDoctor && pathname.startsWith('/doctor')) {
         router.push('/admin/dashboard');
+      } else if (isAuthenticated && isDoctor && pathname === '/doctor/login') {
+        router.push('/doctor/dashboard');
       }
     }
-  }, [isAuthenticated, loading, pathname, router]);
+  }, [isAuthenticated, loading, pathname, router, isDoctor]);
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -42,19 +44,23 @@ export default function AdminLayout({
     );
   }
 
-  if (!isAuthenticated && pathname !== '/admin/login') {
+  if (!isAuthenticated && pathname !== '/doctor/login') {
     return null;
   }
 
-  if (pathname === '/admin/login') {
+  if (pathname === '/doctor/login') {
     return <>{children}</>;
+  }
+
+  if (isAuthenticated && !isDoctor) {
+    return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader onMenuToggle={toggleMenu} isMenuOpen={isMenuOpen} />
+      <DoctorHeader onMenuToggle={toggleMenu} isMenuOpen={isMenuOpen} />
       <div className="flex">
-        <AdminSidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+        <DoctorSidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
         <main className="flex-1 p-4 lg:p-6 mt-16 pb-24 lg:ml-64 lg:pb-6 w-full">
           {children}
         </main>
