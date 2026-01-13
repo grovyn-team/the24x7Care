@@ -20,8 +20,11 @@ export class Enquiry {
   @Prop({ required: true, match: /^[0-9]{10}$/ })
   patient_mob: string;
 
-  @Prop({ required: true, maxlength: 200 })
+  @Prop({ required: false, maxlength: 200 })
   message: string;
+
+  @Prop({ required: true })
+  service: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Doctor', default: null })
   assignee: Types.ObjectId;

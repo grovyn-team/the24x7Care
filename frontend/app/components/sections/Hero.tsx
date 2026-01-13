@@ -156,6 +156,20 @@ export const Hero: React.FC = () => {
                 />
                 
                 <motion.div
+                  className="absolute top-6 right-6 bg-white rounded-xl shadow-lg px-4 py-3 border border-gray-100 z-10"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold text-teal-700 leading-tight">24x7</h3>
+                    <p className="text-xs text-gray-600 mt-0.5">Medical Support</p>
+                  </div>
+                </motion.div>
+                
+                <motion.div
                   className="absolute bottom-6 left-6 bg-white rounded-xl shadow-lg p-5 max-w-xs border border-gray-100 z-10"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}

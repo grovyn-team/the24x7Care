@@ -16,6 +16,7 @@ interface RecentEnquiry {
   patient_name: string;
   patient_mob: string;
   message: string;
+  service: string;
   status: string;
   assignee?: {
     _id: string;
@@ -138,6 +139,9 @@ export default function DashboardPage() {
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Mobile
                   </th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Service
+                  </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Message
                   </th>
@@ -161,8 +165,11 @@ export default function DashboardPage() {
                     <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {enquiry.patient_mob}
                     </td>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {enquiry.service}
+                    </td>
                     <td className="px-3 lg:px-6 py-4 text-sm text-gray-500 hidden md:table-cell max-w-xs truncate">
-                      {enquiry.message}
+                      {enquiry.message || '-'}
                     </td>
                     <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
                       <span

@@ -8,6 +8,7 @@ interface Enquiry {
   patient_name: string;
   patient_age: number;
   message: string;
+  service: string;
   status: 'new' | 'viewed' | 'completed';
   createdAt: string;
 }
@@ -109,6 +110,9 @@ export default function DoctorQueriesPage() {
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Patient
                   </th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Service
+                  </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Message
                   </th>
@@ -123,7 +127,7 @@ export default function DoctorQueriesPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {enquiries.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-3 lg:px-6 py-8 text-center text-gray-500">
+                    <td colSpan={5} className="px-3 lg:px-6 py-8 text-center text-gray-500">
                       No queries assigned yet
                     </td>
                   </tr>
@@ -136,8 +140,11 @@ export default function DoctorQueriesPage() {
                         </div>
                         <div className="text-sm text-gray-500">Age: {enquiry.patient_age}</div>
                       </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {enquiry.service}
+                      </td>
                       <td className="px-3 lg:px-6 py-4 text-sm text-gray-500 hidden md:table-cell max-w-xs truncate">
-                        {enquiry.message}
+                        {enquiry.message || '-'}
                       </td>
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
                         <select

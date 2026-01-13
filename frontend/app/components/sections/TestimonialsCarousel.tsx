@@ -145,7 +145,7 @@ export const TestimonialsCarousel: React.FC = () => {
               <motion.div
                 key={testimonial.id}
                 variants={cardVariants}
-                className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 relative"
+                className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 relative flex flex-col"
                 whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ duration: 0.2 }}
               >
@@ -185,13 +185,13 @@ export const TestimonialsCarousel: React.FC = () => {
                 </div>
 
                 {/* Testimonial Text */}
-                <p className="text-gray-800 text-base leading-relaxed mb-6 relative z-10">
+                <p className="text-gray-800 text-base leading-relaxed mb-6 relative z-10 flex-1">
                   &quot;{testimonial.quote}&quot;
                 </p>
 
                 {/* Reviewer Information - Bottom */}
                 <motion.div
-                  className="flex items-center gap-3"
+                  className="flex items-center gap-3 mt-auto"
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
@@ -200,7 +200,7 @@ export const TestimonialsCarousel: React.FC = () => {
                   {/* Avatar */}
                   <motion.div
                     className="w-12 h-12 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0"
-                    whileHover={{ scale: 1.1, rotate: 360 }}
+                    whileHover={{ scale: 1.1 }}
                     transition={{ duration: 0.5 }}
                   >
                     <span className="text-white font-bold text-lg">
@@ -209,11 +209,11 @@ export const TestimonialsCarousel: React.FC = () => {
                   </motion.div>
 
                   {/* Name and Role */}
-                  <div>
-                    <p className="font-semibold text-gray-900 text-sm">
+                  <div className="flex flex-col">
+                    <p className="font-semibold text-gray-900 text-sm leading-tight">
                       {testimonial.author}
                     </p>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-gray-500 text-sm leading-tight">
                       {testimonial.role}
                     </p>
                   </div>

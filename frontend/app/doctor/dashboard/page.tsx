@@ -8,6 +8,7 @@ interface Enquiry {
   patient_name: string;
   patient_age: number;
   message: string;
+  service: string;
   status: string;
   createdAt: string;
 }
@@ -110,6 +111,9 @@ export default function DoctorDashboardPage() {
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Patient
                   </th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Service
+                  </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Message
                   </th>
@@ -130,8 +134,11 @@ export default function DoctorDashboardPage() {
                       </div>
                       <div className="text-sm text-gray-500">Age: {enquiry.patient_age}</div>
                     </td>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {enquiry.service}
+                    </td>
                     <td className="px-3 lg:px-6 py-4 text-sm text-gray-500 hidden md:table-cell max-w-xs truncate">
-                      {enquiry.message}
+                      {enquiry.message || '-'}
                     </td>
                     <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
                       <span

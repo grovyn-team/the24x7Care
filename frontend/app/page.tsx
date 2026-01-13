@@ -20,10 +20,10 @@ export default function Home() {
         <Header onBookVisitClick={() => setShowConsultationForm(true)} />
         <main className="flex-grow">
           <Hero />
-          <Statistics />
           <Services />
           <WhyTrustUs />
           <PricingPlans />
+          <Statistics />
           <CallToAction />
         </main>
         <Footer />

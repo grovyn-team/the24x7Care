@@ -11,6 +11,7 @@ interface Enquiry {
   patient_age: number;
   patient_mob: string;
   message: string;
+  service: string;
   status: 'new' | 'viewed' | 'completed';
   assignee?: {
     _id?: string;
@@ -104,7 +105,8 @@ export default function QueriesPage() {
         'Patient Name': enquiry.patient_name,
         'Patient Age': enquiry.patient_age,
         'Mobile Number': enquiry.patient_mob,
-        'Message': enquiry.message,
+        'Service': enquiry.service,
+        'Message': enquiry.message || '',
         'Status': enquiry.status,
         'Assignee': enquiry.assignee?.name || 'Unassigned',
         'Employee ID': enquiry.assignee?.employee_id || '',
@@ -115,6 +117,7 @@ export default function QueriesPage() {
         'Patient Name',
         'Patient Age',
         'Mobile Number',
+        'Service',
         'Message',
         'Status',
         'Assignee',
@@ -219,6 +222,9 @@ export default function QueriesPage() {
                   Mobile
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Service
+                </th>
+                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Message
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -235,7 +241,7 @@ export default function QueriesPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {enquiries.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 lg:px-6 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-3 lg:px-6 py-8 text-center text-gray-500">
                     No enquiries found
                   </td>
                 </tr>
@@ -251,8 +257,11 @@ export default function QueriesPage() {
                     <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {enquiry.patient_mob}
                     </td>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {enquiry.service}
+                    </td>
                     <td className="px-3 lg:px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                      {enquiry.message}
+                      {enquiry.message || '-'}
                     </td>
                     <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
                       <span

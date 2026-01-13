@@ -9,6 +9,7 @@ interface Enquiry {
   patient_age: number;
   patient_mob: string;
   message: string;
+  service: string;
   status: 'new' | 'viewed' | 'completed';
   assignee?: {
     _id?: string;
@@ -114,10 +115,14 @@ export default function EditEnquiryModal({
                 <label className="text-sm text-gray-600">Mobile</label>
                 <p className="text-gray-900 font-medium">{enquiry.patient_mob}</p>
               </div>
+              <div>
+                <label className="text-sm text-gray-600">Service</label>
+                <p className="text-gray-900 font-medium">{enquiry.service}</p>
+              </div>
             </div>
             <div>
               <label className="text-sm text-gray-600">Message</label>
-              <p className="text-gray-900">{enquiry.message}</p>
+              <p className="text-gray-900">{enquiry.message || '-'}</p>
             </div>
           </div>
 

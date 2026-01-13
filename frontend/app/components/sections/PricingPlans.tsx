@@ -17,7 +17,7 @@ interface PricingTier {
 const pricingTiers: PricingTier[] = [
   {
     name: 'Basic Care',
-    price: '$25',
+    price: '₹25',
     description: 'Essential support for daily living.',
     features: [
       'Companion services',
@@ -29,7 +29,7 @@ const pricingTiers: PricingTier[] = [
   },
   {
     name: 'Advanced Care',
-    price: '$45',
+    price: '₹45',
     description: 'Enhanced care for complex needs.',
     features: [
       'Personal hygiene support',
@@ -41,7 +41,7 @@ const pricingTiers: PricingTier[] = [
   },
   {
     name: 'Premium Care',
-    price: '$75',
+    price: '₹75',
     description: 'Comprehensive 24/7 professional care.',
     features: [
       '24/7 Monitoring',
@@ -201,34 +201,6 @@ export const PricingPlans: React.FC = () => {
             </motion.div>
           ))}
         </motion.div>
-
-        {/* Trust Badges */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center pt-8 border-t border-gray-200">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center border border-teal-100">
-              <svg className="w-6 h-6 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-gray-900 text-sm">Fully Insured</h4>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center border border-teal-100">
-              <svg className="w-6 h-6 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-gray-900 text-sm">Licensed Pros</h4>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center border border-teal-100">
-              <svg className="w-6 h-6 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-gray-900 text-sm">Satisfaction Guaranteed</h4>
-          </div>
-        </div>
       </div>
     </section>
   );

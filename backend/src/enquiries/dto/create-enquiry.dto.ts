@@ -1,5 +1,13 @@
-import { IsString, IsNumber, Min, Max, MaxLength, Matches } from 'class-validator';
+import { IsString, IsNumber, Min, Max, MaxLength, Matches, IsOptional, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+
+export const SERVICE_OPTIONS = [
+  'Medical Equipment on rent',
+  'ICU and Ventilation Setup',
+  'Home Care',
+  'Doctor Consultation',
+  'Second Opinion',
+] as const;
 
 export class CreateEnquiryDto {
   @ApiProperty({ example: 'John Doe' })
@@ -17,8 +25,18 @@ export class CreateEnquiryDto {
   @Matches(/^[0-9]{10}$/, { message: 'Mobile number must be exactly 10 digits' })
   patient_mob: string;
 
-  @ApiProperty({ example: 'I need a consultation for my health condition', maxLength: 200 })
+  @ApiProperty({ example: 'I need a consultation for my health condition', maxLength: 200, required: false })
+  @IsOptional()
   @IsString()
   @MaxLength(200)
-  message: string;
+  message?: string;
+
+  @ApiProperty({ 
+    example: 'Doctor Consultation',
+    enum: SERVICE_OPTIONS,
+    description: 'Selected service type'
+  })
+  @IsString()
+  @IsIn(SERVICE_OPTIONS)
+  service: string;
 }

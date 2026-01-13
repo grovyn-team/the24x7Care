@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Card } from '../ui/Card';
@@ -41,7 +41,37 @@ const features: Feature[] = [
   },
 ];
 
+const testimonials = [
+  {
+    id: '1',
+    quote: 'The caregivers treated my father like their own family. We are forever grateful.',
+    author: 'Sarah Jenkins',
+    rating: 5,
+  },
+  {
+    id: '2',
+    quote: 'The caregivers treated my father with such dignity and respect. It gave us peace of mind knowing he was in safe hands every single day.',
+    author: 'Michael Chen',
+    rating: 5,
+  },
+  {
+    id: '3',
+    quote: 'Professional, caring, and reliable. The team went above and beyond to ensure my mother\'s comfort and well-being.',
+    author: 'Emily Rodriguez',
+    rating: 5,
+  },
+];
+
 export const WhyTrustUs: React.FC = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, []);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -112,41 +142,41 @@ export const WhyTrustUs: React.FC = () => {
                 />
               </div>
               
-              {/* Clean Testimonial Bubble - Review Card */}
-              <motion.div
-                className="mt-4 bg-white rounded-xl shadow-xl p-4 border border-gray-200"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                whileHover={{ scale: 1.02, y: -5 }}
-              >
-                <motion.div
-                  className="flex items-center gap-1 mb-3"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ staggerChildren: 0.1, delay: 0.5 }}
+              {/* Testimonial Carousel */}
+              <div className="mt-4 overflow-hidden relative">
+                <div
+                  className="flex transition-transform duration-1000 ease-in-out"
+                  style={{
+                    transform: `translateX(-${currentIndex * 100}%)`,
+                  }}
                 >
-                  {[...Array(5)].map((_, i) => (
-                    <motion.svg
-                      key={i}
-                      className="w-4 h-4 text-yellow-400 fill-current"
-                      viewBox="0 0 20 20"
-                      initial={{ opacity: 0, scale: 0 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.3, delay: 0.5 + i * 0.1 }}
+                  {testimonials.map((testimonial) => (
+                    <div
+                      key={testimonial.id}
+                      className="w-full flex-shrink-0 bg-white rounded-xl shadow-xl p-5 border border-gray-200 min-h-[180px] flex flex-col"
                     >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </motion.svg>
+                      <div className="flex items-center gap-1 mb-3">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <svg
+                            key={i}
+                            className="w-4 h-4 text-yellow-400 fill-current"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <p 
+                        className="text-gray-700 italic mb-2 leading-relaxed text-sm flex-1 break-words"
+                        style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
+                      >
+                        &quot;{testimonial.quote}&quot;
+                      </p>
+                      <p className="text-gray-900 font-semibold text-sm mt-auto">- {testimonial.author}</p>
+                    </div>
                   ))}
-                </motion.div>
-                <p className="text-gray-700 italic mb-2 leading-relaxed text-sm">
-                  &quot;The caregivers treated my father like their own family. We are forever grateful.&quot;
-                </p>
-                <p className="text-gray-900 font-semibold text-sm">- Sarah Jenkins</p>
-              </motion.div>
+                </div>
+              </div>
             </div>
           </motion.div>
 
@@ -196,7 +226,7 @@ export const WhyTrustUs: React.FC = () => {
                 >
                   <motion.div
                     className="flex-shrink-0"
-                    whileHover={{ rotate: 360, scale: 1.1 }}
+                    whileHover={{ scale: 1.1 }}
                     transition={{ duration: 0.5 }}
                   >
                     <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">

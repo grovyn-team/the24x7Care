@@ -66,7 +66,15 @@ export const Statistics: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 + index * 0.1 }}
               >
-                <AnimatedCounter value={stat.value} duration={2} />
+                {stat.value === '24x7' ? (
+                  <span>
+                    <span>24</span>
+                    <span>x</span>
+                    <span>7</span>
+                  </span>
+                ) : (
+                  <AnimatedCounter value={stat.value} duration={2} />
+                )}
               </motion.div>
               <div className="text-gray-600 font-medium text-sm">
                 {stat.label}

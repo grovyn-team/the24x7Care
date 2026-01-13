@@ -8,18 +8,27 @@ interface ConsultationFormProps {
   onClose?: () => void;
 }
 
+const SERVICE_OPTIONS = [
+  'Medical Equipment on rent',
+  'ICU and Ventilation Setup',
+  'Home Care',
+  'Doctor Consultation',
+  'Second Opinion',
+] as const;
+
 export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) => {
   const [formData, setFormData] = useState({
     patient_name: '',
     patient_age: '',
     patient_mobile: '',
     patient_message: '',
+    service: '',
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -41,7 +50,8 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
         patient_name: formData.patient_name.trim(),
         patient_age: parseInt(formData.patient_age),
         patient_mob: formData.patient_mobile.trim(),
-        message: formData.patient_message.trim(),
+        message: formData.patient_message.trim() || undefined,
+        service: formData.service,
       };
 
       await enquiriesApi.create(enquiryData);
@@ -51,6 +61,7 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
         patient_age: '',
         patient_mobile: '',
         patient_message: '',
+        service: '',
       });
       
       setSubmitSuccess(true);
@@ -83,8 +94,8 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
       parseInt(formData.patient_age) < 100 &&
       formData.patient_mobile.trim() !== '' &&
       validateMobile(formData.patient_mobile) &&
-      formData.patient_message.trim() !== '' &&
-      formData.patient_message.length <= 200
+      formData.service !== '' &&
+      (!formData.patient_message || formData.patient_message.length <= 200)
     );
   };
 
@@ -168,8 +179,29 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
       </div>
 
       <div>
+        <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-2">
+          Select Service <span className="text-red-500">*</span>
+        </label>
+        <select
+          id="service"
+          name="service"
+          value={formData.service}
+          onChange={handleChange}
+          required
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors"
+        >
+          <option value="">Choose a service...</option>
+          {SERVICE_OPTIONS.map((service) => (
+            <option key={service} value={service}>
+              {service}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
         <label htmlFor="patient_message" className="block text-sm font-medium text-gray-700 mb-2">
-          Message <span className="text-red-500">*</span>
+          Message
           <span className="text-gray-500 font-normal ml-2">
             ({formData.patient_message.length}/200 characters)
           </span>
@@ -179,7 +211,6 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
           name="patient_message"
           value={formData.patient_message}
           onChange={handleChange}
-          required
           maxLength={200}
           rows={4}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors resize-none"

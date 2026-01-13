@@ -49,7 +49,8 @@ export class EnquiriesService {
       patient_name: createEnquiryDto.patient_name,
       patient_age: createEnquiryDto.patient_age,
       patient_mob: createEnquiryDto.patient_mob,
-      message: createEnquiryDto.message,
+      message: createEnquiryDto.message || '',
+      service: createEnquiryDto.service,
       status: EnquiryStatus.NEW,
       assignee: null,
     });

@@ -49,14 +49,25 @@ export default function ServicesPage() {
                   ),
                 },
               ].map((service, index) => (
-                <div key={index} className="bg-teal-800 rounded-xl p-8 hover:shadow-lg transition-shadow border border-teal-700 group">
+                <div key={index} className="bg-teal-800 rounded-xl p-8 hover:shadow-lg transition-shadow border border-teal-700 group flex flex-col">
                   <div className="mb-5 p-4 bg-white/10 rounded-lg w-fit border border-white/20 group-hover:border-white/40 group-hover:bg-white/15 transition-colors duration-200">
                     <div className="text-white drop-shadow-sm">
                       {service.icon}
                     </div>
                   </div>
                   <h3 className="text-xl font-bold text-white mb-3">{service.title}</h3>
-                  <p className="text-teal-100">{service.description}</p>
+                  <p className="text-teal-100 mb-6 flex-grow">{service.description}</p>
+                  <div className="mt-auto">
+                    <button
+                      onClick={() => setShowForm(true)}
+                      className="text-teal-200 font-semibold hover:text-white inline-flex items-center gap-2 transition-colors duration-200 group"
+                    >
+                      Book Now
+                      <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
