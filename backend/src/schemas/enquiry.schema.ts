@@ -20,11 +20,20 @@ export class Enquiry {
   @Prop({ required: true, match: /^[0-9]{10}$/ })
   patient_mob: string;
 
+  @Prop({ required: true })
+  patient_gender: string;
+
   @Prop({ required: false, maxlength: 200 })
   message: string;
 
   @Prop({ required: true })
   service: string;
+
+  @Prop({ required: true })
+  mode_of_conversation: string;
+
+  @Prop({ required: false })
+  speciality: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Doctor', default: null })
   assignee: Types.ObjectId;

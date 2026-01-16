@@ -49,8 +49,11 @@ export class EnquiriesService {
       patient_name: createEnquiryDto.patient_name,
       patient_age: createEnquiryDto.patient_age,
       patient_mob: createEnquiryDto.patient_mob,
+      patient_gender: createEnquiryDto.patient_gender,
       message: createEnquiryDto.message || '',
       service: createEnquiryDto.service,
+      mode_of_conversation: createEnquiryDto.mode_of_conversation,
+      speciality: createEnquiryDto.speciality || '',
       status: EnquiryStatus.NEW,
       assignee: null,
     });

@@ -1,47 +1,66 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Card } from '../ui/Card';
+import { api } from '../../lib/api';
 
 interface Service {
-  icon: React.ReactNode;
+  _id?: string;
   title: string;
   description: string;
+  perks?: string[];
+  book_via?: string;
 }
 
-const services: Service[] = [
-  {
-    icon: (
+const getServiceIcon = (title: string) => {
+  const iconMap: { [key: string]: React.ReactNode } = {
+    'Doctor Consultation': (
       <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
     ),
-    title: 'Post-Surgery Care',
-    description: 'Comprehensive recovery support including wound care, medication management, and rehabilitation assistance to ensure a smooth healing process.',
-  },
-  {
-    icon: (
+    'Home Care Services': (
       <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
       </svg>
     ),
-    title: 'Elderly Companionship',
-    description: 'Daily living assistance, companionship, and emotional support to foster independence and dignity for your loved ones in familiar surroundings.',
-  },
-  {
-    icon: (
+    'Nurse/Caretaker': (
       <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
       </svg>
     ),
-    title: 'Specialized Nursing',
-    description: 'Professional medical assistance including medication management, vital monitoring, and specialized care tailored to specific health conditions.',
-  },
-];
+  };
+  return iconMap[title] || (
+    <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  );
+};
 
 export const Services: React.FC = () => {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const data = await api.get<Service[]>('/services');
+        const topServices = ['Doctor Consultation', 'Home Care Services', 'Nurse/Caretaker'];
+        const filtered = (data || []).filter(s => topServices.includes(s.title));
+        setServices(filtered.length === 3 ? filtered : (data || []).slice(0, 3));
+      } catch (error) {
+        console.error('Failed to fetch services:', error);
+        setServices([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -138,54 +157,60 @@ export const Services: React.FC = () => {
           </motion.div>
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-        >
-          {services.map((service, index) => (
-            <motion.div
-              key={index}
-              variants={cardVariants}
-              whileHover={{ y: -5 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Card 
-                hover 
-                className="flex flex-col group h-full bg-teal-800 border-teal-700"
-              >
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-700"></div>
+          </div>
+        ) : (
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+          >
+            {services.map((service, index) => (
               <motion.div
-                className="mb-5 p-4 bg-white/10 rounded-lg w-fit border border-white/20 group-hover:border-white/40 group-hover:bg-white/15 transition-colors duration-200"
-                whileHover={{ scale: 1.05, rotate: 5 }}
+                key={service._id || index}
+                variants={cardVariants}
+                whileHover={{ y: -5 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="text-white drop-shadow-sm">
-                  {service.icon}
-                </div>
-              </motion.div>
-              <h3 className="text-lg font-bold text-white mb-3 group-hover:text-teal-200 transition-colors duration-200">
-                {service.title}
-              </h3>
-              <p className="text-teal-100 mb-6 flex-grow leading-relaxed text-sm">
-                {service.description}
-              </p>
-              <motion.div whileHover={{ x: 5 }}>
-                <Link
-                  href="/services"
-                  className="text-teal-200 font-semibold hover:text-white inline-flex items-center gap-2 transition-colors duration-200 group"
+                <Card 
+                  hover 
+                  className="flex flex-col group h-full bg-teal-800 border-teal-700"
                 >
-                  Book Now
-                  <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </Link>
+                <motion.div
+                  className="mb-5 p-4 bg-white/10 rounded-lg w-fit border border-white/20 group-hover:border-white/40 group-hover:bg-white/15 transition-colors duration-200"
+                  whileHover={{ scale: 1.05, rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="text-white drop-shadow-sm">
+                    {getServiceIcon(service.title)}
+                  </div>
+                </motion.div>
+                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-teal-200 transition-colors duration-200">
+                  {service.title}
+                </h3>
+                <p className="text-teal-100 mb-6 flex-grow leading-relaxed text-sm">
+                  {service.description}
+                </p>
+                <motion.div whileHover={{ x: 5 }}>
+                  <Link
+                    href="/services"
+                    className="text-teal-200 font-semibold hover:text-white inline-flex items-center gap-2 transition-colors duration-200 group"
+                  >
+                    Book Now
+                    <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </Link>
+                </motion.div>
+                </Card>
               </motion.div>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </section>
   );

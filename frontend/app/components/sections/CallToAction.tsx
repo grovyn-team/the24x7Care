@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '../ui/Button';
 import { ConsultationForm } from './ConsultationForm';
@@ -60,16 +61,17 @@ export const CallToAction: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button variant="outline" size="lg">
-                  View Services
-                </Button>
+                <Link href="/services">
+                  <Button variant="outline" size="lg">
+                    View Services
+                  </Button>
+                </Link>
               </motion.div>
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* Consultation Form Modal */}
       {showForm && (
         <motion.div
           className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4"
@@ -79,7 +81,7 @@ export const CallToAction: React.FC = () => {
           onClick={() => setShowForm(false)}
         >
           <motion.div
-            className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}

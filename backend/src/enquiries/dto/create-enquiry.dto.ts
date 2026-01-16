@@ -9,6 +9,17 @@ export const SERVICE_OPTIONS = [
   'Second Opinion',
 ] as const;
 
+export const MODE_OPTIONS = ['Audio Call', 'Video Call', 'Chat'] as const;
+
+export const SPECIALITY_OPTIONS = [
+  'Dermatologist',
+  'Pulmonologist',
+  'Nephrologist',
+  'Dentologist',
+] as const;
+
+export const GENDER_OPTIONS = ['Male', 'Female', 'Others'] as const;
+
 export class CreateEnquiryDto {
   @ApiProperty({ example: 'John Doe' })
   @IsString()
@@ -25,6 +36,11 @@ export class CreateEnquiryDto {
   @Matches(/^[0-9]{10}$/, { message: 'Mobile number must be exactly 10 digits' })
   patient_mob: string;
 
+  @ApiProperty({ example: 'Male', enum: GENDER_OPTIONS })
+  @IsString()
+  @IsIn(GENDER_OPTIONS)
+  patient_gender: string;
+
   @ApiProperty({ example: 'I need a consultation for my health condition', maxLength: 200, required: false })
   @IsOptional()
   @IsString()
@@ -39,4 +55,20 @@ export class CreateEnquiryDto {
   @IsString()
   @IsIn(SERVICE_OPTIONS)
   service: string;
+
+  @ApiProperty({ example: 'Audio Call', enum: MODE_OPTIONS })
+  @IsString()
+  @IsIn(MODE_OPTIONS)
+  mode_of_conversation: string;
+
+  @ApiProperty({ 
+    example: 'Dermatologist',
+    enum: SPECIALITY_OPTIONS,
+    required: false,
+    description: 'Required when service is Doctor Consultation'
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(SPECIALITY_OPTIONS)
+  speciality?: string;
 }

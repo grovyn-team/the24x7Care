@@ -16,6 +16,17 @@ const SERVICE_OPTIONS = [
   'Second Opinion',
 ] as const;
 
+const MODE_OPTIONS = ['Audio Call', 'Video Call', 'Chat'] as const;
+
+const SPECIALITY_OPTIONS = [
+  'Dermatologist',
+  'Pulmonologist',
+  'Nephrologist',
+  'Dentologist',
+] as const;
+
+const GENDER_OPTIONS = ['Male', 'Female', 'Others'] as const;
+
 export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) => {
   const [formData, setFormData] = useState({
     patient_name: '',
@@ -23,6 +34,9 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
     patient_mobile: '',
     patient_message: '',
     service: '',
+    mode_of_conversation: '',
+    speciality: '',
+    patient_gender: '',
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,6 +47,8 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      // Reset speciality if service changes away from Doctor Consultation
+      ...(name === 'service' && value !== 'Doctor Consultation' ? { speciality: '' } : {}),
     }));
   };
 
@@ -46,13 +62,20 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
     setIsSubmitting(true);
 
     try {
-      const enquiryData = {
+      const enquiryData: any = {
         patient_name: formData.patient_name.trim(),
         patient_age: parseInt(formData.patient_age),
         patient_mob: formData.patient_mobile.trim(),
         message: formData.patient_message.trim() || undefined,
         service: formData.service,
+        mode_of_conversation: formData.mode_of_conversation,
+        patient_gender: formData.patient_gender,
       };
+
+      // Only include speciality if Doctor Consultation is selected
+      if (formData.service === 'Doctor Consultation' && formData.speciality) {
+        enquiryData.speciality = formData.speciality;
+      }
 
       await enquiriesApi.create(enquiryData);
       
@@ -62,6 +85,9 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
         patient_mobile: '',
         patient_message: '',
         service: '',
+        mode_of_conversation: '',
+        speciality: '',
+        patient_gender: '',
       });
       
       setSubmitSuccess(true);
@@ -87,7 +113,7 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
   };
 
   const isFormValid = () => {
-    return (
+    const baseValid = (
       formData.patient_name.trim() !== '' &&
       formData.patient_age.trim() !== '' &&
       parseInt(formData.patient_age) > 0 &&
@@ -95,8 +121,17 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
       formData.patient_mobile.trim() !== '' &&
       validateMobile(formData.patient_mobile) &&
       formData.service !== '' &&
+      formData.mode_of_conversation !== '' &&
+      formData.patient_gender !== '' &&
       (!formData.patient_message || formData.patient_message.length <= 200)
     );
+
+    // If Doctor Consultation is selected, speciality must be selected
+    if (formData.service === 'Doctor Consultation') {
+      return baseValid && formData.speciality !== '';
+    }
+
+    return baseValid;
   };
 
   if (submitSuccess) {
@@ -179,6 +214,27 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
       </div>
 
       <div>
+        <label htmlFor="patient_gender" className="block text-sm font-medium text-gray-700 mb-2">
+          Patient Gender <span className="text-red-500">*</span>
+        </label>
+        <select
+          id="patient_gender"
+          name="patient_gender"
+          value={formData.patient_gender}
+          onChange={handleChange}
+          required
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors"
+        >
+          <option value="">Select gender...</option>
+          {GENDER_OPTIONS.map((gender) => (
+            <option key={gender} value={gender}>
+              {gender}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
         <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-2">
           Select Service <span className="text-red-500">*</span>
         </label>
@@ -197,6 +253,51 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({ onClose }) =
             </option>
           ))}
         </select>
+      </div>
+
+      {formData.service === 'Doctor Consultation' && (
+        <div>
+          <label htmlFor="speciality" className="block text-sm font-medium text-gray-700 mb-2">
+            Speciality <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="speciality"
+            name="speciality"
+            value={formData.speciality}
+            onChange={handleChange}
+            required={formData.service === 'Doctor Consultation'}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors"
+          >
+            <option value="">Select speciality...</option>
+            {SPECIALITY_OPTIONS.map((speciality) => (
+              <option key={speciality} value={speciality}>
+                {speciality}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Mode of Conversation <span className="text-red-500">*</span>
+        </label>
+        <div className="space-y-2">
+          {MODE_OPTIONS.map((mode) => (
+            <label key={mode} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="mode_of_conversation"
+                value={mode}
+                checked={formData.mode_of_conversation === mode}
+                onChange={handleChange}
+                required
+                className="w-4 h-4 text-teal-700 border-gray-300 focus:ring-teal-700"
+              />
+              <span className="text-sm text-gray-700">{mode}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       <div>

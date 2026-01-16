@@ -6,11 +6,11 @@ export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   const servicesLinks = [
-    { href: '/services/post-surgery', label: 'Post-Surgery Care' },
-    { href: '/services/elderly', label: 'Elderly Companionship' },
-    { href: '/services/nursing', label: 'Specialized Nursing' },
-    { href: '/services/physiotherapy', label: 'Physiotherapy' },
-    { href: '/services/palliative', label: 'Palliative Care' },
+    { href: '/services', label: 'Doctor Consultation' },
+    { href: '/services', label: 'Home Care Services' },
+    { href: '/services', label: 'Nurse/Caretaker' },
+    { href: '/services', label: 'Physiotherapy' },
+    { href: '/services', label: 'Lab Test at home' },
   ];
 
   const companyLinks = [
@@ -69,7 +69,7 @@ export const Footer: React.FC = () => {
             <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase">Services</h3>
             <ul className="space-y-2">
               {servicesLinks.map((link) => (
-                <li key={link.href}>
+                <li key={link.label}>
                   <Link
                     href={link.href}
                     className="text-gray-600 hover:text-teal-700 text-sm transition-colors"

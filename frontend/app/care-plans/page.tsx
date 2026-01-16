@@ -26,20 +26,24 @@ export default function CarePlansPage() {
               <div className="space-y-6">
                 {[
                   {
-                    question: 'Can I switch between care plans?',
-                    answer: 'Yes, you can upgrade, downgrade, or modify your care plan at any time based on your changing needs. Our care coordinators will help you make the transition seamless.',
+                    question: 'What happens if I don\'t get a response?',
+                    answer: 'We understand that timely communication is crucial. If you don\'t receive a response within 24 hours of submitting your enquiry, please contact us directly at +91 79747 53889 or reach out via WhatsApp. Our support team is available 24/7 to ensure you receive immediate assistance and follow-up on your queries.',
                   },
                   {
-                    question: 'Are there any long-term commitments?',
-                    answer: 'No, we offer flexible scheduling with no long-term contracts required. You can use our services on a weekly, monthly, or as-needed basis.',
+                    question: 'Do you have a refund policy?',
+                    answer: 'Yes, we have a transparent refund policy. If you are not satisfied with our services or need to cancel your consultation before it begins, we offer full refunds within 48 hours of payment. For services already rendered, refunds are evaluated on a case-by-case basis. Please contact our support team for refund requests, and we will process them within 5-7 business days.',
                   },
                   {
-                    question: 'What payment methods do you accept?',
-                    answer: 'We accept all major credit cards, debit cards, insurance plans, and offer payment plans for extended care services. Payment receipts are provided after each transaction.',
+                    question: 'Will you be able to resolve my issue?',
+                    answer: 'Our team of experienced medical professionals and care coordinators is dedicated to addressing your healthcare needs comprehensively. While we cannot guarantee specific medical outcomes, we ensure that every enquiry receives proper attention, appropriate medical consultation, and a personalized care plan. We work with certified doctors and specialists across various fields to provide the best possible solutions for your health concerns.',
                   },
                   {
-                    question: 'Do you accept insurance?',
-                    answer: 'Yes, we work with most major insurance providers. Our team will help you verify your coverage and assist with all necessary paperwork.',
+                    question: 'Is my consultation private with doctor?',
+                    answer: 'Absolutely. Patient confidentiality is one of our top priorities. All consultations are conducted in a completely private and secure environment. We adhere to strict HIPAA-compliant privacy standards, and your personal information and medical discussions are never shared with unauthorized parties. Whether it\'s an in-person consultation, video call, audio call, or chat, your privacy is guaranteed at every step.',
+                  },
+                  {
+                    question: 'Who are the consulting doctors?',
+                    answer: 'Our consulting doctors are highly qualified, licensed medical professionals with years of experience in their respective specializations. They include board-certified specialists such as Dermatologists, Pulmonologists, Nephrologists, Dentologists, and general practitioners. All our doctors undergo rigorous credential verification and maintain active licenses with medical councils. You can request information about your assigned doctor\'s qualifications and experience before your consultation.',
                   },
                 ].map((faq, index) => (
                   <div key={index} className="bg-white rounded-lg p-6 shadow-sm">
@@ -58,7 +62,7 @@ export default function CarePlansPage() {
       {/* Consultation Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center rounded-t-xl z-10">
               <h2 className="text-2xl font-bold text-gray-900">Schedule a Consultation</h2>
               <button

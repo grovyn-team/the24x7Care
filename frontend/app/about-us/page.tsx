@@ -127,7 +127,7 @@ export default function AboutUsPage() {
       {/* Consultation Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center rounded-t-xl z-10">
               <h2 className="text-2xl font-bold text-gray-900">Schedule a Consultation</h2>
               <button
