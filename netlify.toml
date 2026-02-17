@@ -1,0 +1,7 @@
+[build]
+  command = "npm install && npm --workspace the247care.com run build"
+  publish = "frontend/.next"
+
+[build.environment]
+  NPM_FLAGS = "--legacy-peer-deps"
+  NODE_VERSION = "20"
