@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "The24x7Care - Premium Home Healthcare Services",
   description: "Compassionate healthcare delivered at home. Professional medical support and companionship tailored to your loved one's needs, right where they are most comfortable.",
+  icons: {
+    icon: [{ url: "/the247_care_logo.svg", type: "image/svg+xml" }],
+    shortcut: "/the247_care_logo.svg",
+    apple: "/the247_care_logo.svg",
+  },
 };
 
 export default function RootLayout({
