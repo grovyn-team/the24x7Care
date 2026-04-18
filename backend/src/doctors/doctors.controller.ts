@@ -26,6 +26,7 @@ import { UserRole } from '../schemas/user.schema';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { EnquiriesService } from '../enquiries/enquiries.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { BulkDeleteDto } from '../common/dto/bulk-delete.dto';
 
 @ApiTags('Doctors')
 @Controller('doctors')
@@ -173,5 +174,14 @@ export class DoctorsController {
   @ApiOperation({ summary: 'Delete doctor (admin only)' })
   async remove(@Param('id') id: string) {
     return this.doctorsService.remove(id);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Post('bulk-delete')
+  @ApiOperation({ summary: 'Bulk delete doctors (admin only)' })
+  async bulkDelete(@Body() body: BulkDeleteDto) {
+    // Ensure there are no dangling enquiry assignees
+    await this.enquiriesService.bulkUnassignDoctorIds(body.ids);
+    return this.doctorsService.bulkRemove(body.ids);
   }
 }

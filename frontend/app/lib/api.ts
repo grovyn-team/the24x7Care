@@ -1,3 +1,5 @@
+import type { ContentSummaryCounts, SiteSettingsBundle } from './site-content-types';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 if (!API_BASE_URL) {
@@ -104,12 +106,28 @@ export const authApi = {
   },
 };
 
+export interface SocialMediaItem {
+  _id: string;
+  title: string;
+  href: string;
+  icon_url?: string | null;
+}
+
+export const contentApi = {
+  getSiteSettings: (signal?: AbortSignal) => api.get<SiteSettingsBundle>('/site-settings', signal),
+  getSocialMedia: (signal?: AbortSignal) => api.get<SocialMediaItem[]>('/social-media', signal),
+};
+
 export const enquiriesApi = {
   create: (data: {
     patient_name: string;
     patient_age: number;
     patient_mob: string;
-    message: string;
+    patient_gender: string;
+    message?: string;
+    service: string;
+    mode_of_conversation: string;
+    speciality?: string;
   }) => api.post('/enquiries', data),
 };
 
@@ -130,15 +148,20 @@ export const adminApi = {
   },
   updateEnquiry: (id: string, data: any) => api.patch(`/enquiries/${id}`, data),
   deleteEnquiry: (id: string) => api.delete(`/enquiries/${id}`),
+  bulkDeleteEnquiries: (ids: string[]) => api.post('/enquiries/bulk-delete', { ids }),
   getDoctors: (page = 1, limit = 30) => api.get(`/doctors?page=${page}&limit=${limit}`),
   getAllDoctors: () => api.get('/doctors/export/all'),
   getPatients: (page = 1, limit = 30) => api.get(`/patients?page=${page}&limit=${limit}`),
   getAllPatients: () => api.get('/patients/export/all'),
+  deletePatient: (id: string) => api.delete(`/patients/${id}`),
+  bulkDeletePatients: (ids: string[]) => api.post('/patients/bulk-delete', { ids }),
   createDoctor: (data: any) => api.post('/doctors', data),
   createDoctorsBulk: (doctors: any[]) => api.post('/doctors/bulk', { doctors }),
   updateDoctor: (id: string, data: any) => api.patch(`/doctors/${id}`, data),
   deleteDoctor: (id: string) => api.delete(`/doctors/${id}`),
+  bulkDeleteDoctors: (ids: string[]) => api.post('/doctors/bulk-delete', { ids }),
   getServices: () => api.get('/services'),
+  getServiceById: (id: string) => api.get(`/services/${id}`),
   createService: (data: any) => api.post('/services', data),
   updateService: (id: string, data: any) => api.patch(`/services/${id}`, data),
   deleteService: (id: string) => api.delete(`/services/${id}`),
@@ -146,6 +169,14 @@ export const adminApi = {
   createSocialMedia: (data: any) => api.post('/social-media', data),
   updateSocialMedia: (id: string, data: any) => api.patch(`/social-media/${id}`, data),
   deleteSocialMedia: (id: string) => api.delete(`/social-media/${id}`),
+  getSiteSettingsAdmin: () => api.get<SiteSettingsBundle>('/site-settings/admin'),
+  updateSiteSettings: (data: Record<string, unknown>) => api.patch<SiteSettingsBundle>('/site-settings', data),
+  getContentSummary: () => api.get<ContentSummaryCounts>('/admin/content/summary'),
+  getHeroDiscount: () => api.get<{ discount: number; isActive: boolean }>('/hero-discount'),
+  updateHeroDiscount: (data: { discount?: number; isActive?: boolean }) =>
+    api.patch('/hero-discount', data),
+  getCoreValues: () => api.get('/core-values'),
+  getLeadershipTeam: () => api.get('/leadership-team'),
 };
 
 export const doctorApi = {

@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Check } from 'lucide-react';
 import { doctorApi } from '../../lib/api';
+import { useToast } from '../../contexts/ToastContext';
 
 interface DayAvailability {
   day: string;
@@ -21,6 +23,7 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function DoctorAvailabilityPage() {
+  const toast = useToast();
   const [availability, setAvailability] = useState<DayAvailability[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -99,7 +102,7 @@ export default function DoctorAvailabilityPage() {
       setSuccessMessage('Availability updated successfully!');
     } catch (error: any) {
       console.error('Failed to update availability:', error);
-      alert(error.message || 'Failed to update availability. Please try again.');
+      toast.error(error.message || 'Failed to update availability. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -127,12 +130,9 @@ export default function DoctorAvailabilityPage() {
 
   return (
     <div className="space-y-4 lg:space-y-6">
-      {/* Success Message Popup */}
       {successMessage && (
         <div className="fixed top-20 left-4 right-4 sm:left-auto sm:right-6 sm:w-auto bg-green-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-fade-in">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+          <Check className="h-6 w-6" strokeWidth={2} />
           <span className="font-medium">{successMessage}</span>
         </div>
       )}

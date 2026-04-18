@@ -1,9 +1,23 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { adminApi } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { useConfirm } from '../../contexts/ConfirmContext';
+import { useToast } from '../../contexts/ToastContext';
 import { exportToCSV } from '../../lib/export';
-
+import {
+  Check,
+  Download,
+  Info,
+  Loader2,
+  PenLine,
+  Plus,
+  Trash2,
+  Upload,
+  User,
+  X,
+} from 'lucide-react';
 enum Gender {
   MALE = 'male',
   FEMALE = 'female',
@@ -37,17 +51,25 @@ interface AddDoctorFormData {
 }
 
 export default function UsersPage() {
+  const toast = useToast();
+  const confirm = useConfirm();
+  const { isAdmin } = useAuth();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [page, setPage] = useState(1);
+  const [refetchNonce, setRefetchNonce] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingDoctorId, setEditingDoctorId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const limit = 30;
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const [formData, setFormData] = useState<AddDoctorFormData>({
     name: '',
@@ -61,21 +83,127 @@ export default function UsersPage() {
 
   useEffect(() => {
     const fetchDoctors = async () => {
-      setLoading(true);
+      const isFirstPage = page === 1;
+      if (isFirstPage) setLoading(true);
+      else setLoadingMore(true);
       try {
         const response = await adminApi.getDoctors(page, limit) as DoctorsResponse;
-        setDoctors(response.data || []);
+        setDoctors((prev) => (isFirstPage ? (response.data || []) : [...prev, ...(response.data || [])]));
         setTotalPages(response.totalPages || 1);
         setTotal(response.total || 0);
       } catch (error) {
         console.error('Failed to fetch doctors:', error);
       } finally {
-        setLoading(false);
+        if (isFirstPage) setLoading(false);
+        else setLoadingMore(false);
       }
     };
 
     fetchDoctors();
-  }, [page]);
+  }, [page, refetchNonce]);
+
+  const hasMore = page < totalPages;
+
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    if (loading || loadingMore || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first?.isIntersecting) {
+          setPage((p) => (p < totalPages ? p + 1 : p));
+        }
+      },
+      { root: null, rootMargin: '240px', threshold: 0.01 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading, loadingMore, hasMore, totalPages]);
+
+  const visibleIds = useMemo(() => doctors.map((d) => d._id), [doctors]);
+  const allVisibleSelected = useMemo(() => {
+    if (visibleIds.length === 0) return false;
+    return visibleIds.every((id) => selectedIds.has(id));
+  }, [visibleIds, selectedIds]);
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        visibleIds.forEach((id) => next.delete(id));
+      } else {
+        visibleIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const refetchFromStart = () => {
+    setPage(1);
+    setRefetchNonce((n) => n + 1);
+  };
+
+  const handleDelete = async (doctor: Doctor) => {
+    const ok = await confirm({
+      title: 'Delete this doctor?',
+      description: `This will permanently remove ${doctor.name} (${doctor.employee_id}). This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
+    try {
+      await adminApi.deleteDoctor(doctor._id);
+      toast.success('Doctor deleted.');
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(doctor._id);
+        return next;
+      });
+      refetchFromStart();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to delete doctor.';
+      console.error('Failed to delete doctor:', error);
+      toast.error(message);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    const ok = await confirm({
+      title: `Delete ${ids.length} selected doctor${ids.length === 1 ? '' : 's'}?`,
+      description: 'This will permanently remove the selected doctor accounts. Assigned enquiries will be unassigned.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
+    try {
+      await adminApi.bulkDeleteDoctors(ids);
+      toast.success('Selected doctors deleted.');
+      setSelectedIds(new Set());
+      refetchFromStart();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to delete selected doctors.';
+      console.error('Bulk delete doctors failed:', error);
+      toast.error(message);
+    }
+  };
 
   useEffect(() => {
     if (successMessage) {
@@ -92,7 +220,7 @@ export default function UsersPage() {
       const allDoctors = await adminApi.getAllDoctors() as Doctor[];
       
       if (!allDoctors || allDoctors.length === 0) {
-        alert('No data to export');
+        toast.info('No data to export.');
         setExporting(false);
         return;
       }
@@ -105,22 +233,59 @@ export default function UsersPage() {
         'Gender': doctor.gender,
       }));
 
-      exportToCSV(exportData, 'doctors', [
+      const ok = exportToCSV(exportData, 'doctors', [
         'Name',
         'Specialization',
         'Mobile',
         'Employee ID',
         'Gender',
       ]);
+      if (ok) toast.success('Doctor list exported.');
+      else toast.info('No data to export.');
     } catch (error) {
       console.error('Failed to export doctors:', error);
-      alert('Failed to export data. Please try again.');
+      toast.error('Failed to export data. Please try again.');
     } finally {
       setExporting(false);
     }
   };
 
-  const handleAddDoctor = async (e: React.FormEvent) => {
+  const emptyDoctorForm = (): AddDoctorFormData => ({
+    name: '',
+    specialization: '',
+    mobile: '',
+    employee_id: '',
+    gender: Gender.MALE,
+    avatar_url: '',
+  });
+
+  const openAddDoctorModal = () => {
+    setEditingDoctorId(null);
+    setFormData(emptyDoctorForm());
+    setShowAddModal(true);
+  };
+
+  const openEditDoctorModal = (doctor: Doctor) => {
+    setEditingDoctorId(doctor._id);
+    setFormData({
+      name: doctor.name,
+      specialization: doctor.specialization,
+      mobile: doctor.mobile,
+      employee_id: doctor.employee_id,
+      gender: doctor.gender === Gender.FEMALE ? Gender.FEMALE : Gender.MALE,
+      avatar_url: '',
+    });
+    setShowAddModal(true);
+  };
+
+  const closeDoctorModal = (force = false) => {
+    if (!force && formLoading) return;
+    setShowAddModal(false);
+    setEditingDoctorId(null);
+    setFormData(emptyDoctorForm());
+  };
+
+  const handleDoctorFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
     try {
@@ -128,25 +293,22 @@ export default function UsersPage() {
       if (!dataToSend.avatar_url) {
         delete dataToSend.avatar_url;
       }
-      await adminApi.createDoctor(dataToSend);
-      setSuccessMessage(`Doctor "${formData.name}" added successfully!`);
-      setShowAddModal(false);
-      setFormData({
-        name: '',
-        specialization: '',
-        mobile: '',
-        employee_id: '',
-        gender: Gender.MALE,
-        avatar_url: '',
-      });
-      
-      const response = await adminApi.getDoctors(page, limit) as DoctorsResponse;
-      setDoctors(response.data || []);
-      setTotalPages(response.totalPages || 1);
-      setTotal(response.total || 0);
-    } catch (error: any) {
-      console.error('Failed to add doctor:', error);
-      alert(error.message || 'Failed to add doctor. Please try again.');
+
+      if (editingDoctorId) {
+        const { employee_id: _omitEmployeeId, ...updates } = dataToSend;
+        await adminApi.updateDoctor(editingDoctorId, updates);
+        setSuccessMessage(`Doctor "${formData.name}" updated successfully!`);
+      } else {
+        await adminApi.createDoctor(dataToSend);
+        setSuccessMessage(`Doctor "${formData.name}" added successfully!`);
+      }
+
+      closeDoctorModal(true);
+      refetchFromStart();
+    } catch (error: unknown) {
+      console.error('Failed to save doctor:', error);
+      const msg = error instanceof Error ? error.message : 'Failed to save doctor. Please try again.';
+      toast.error(msg);
     } finally {
       setFormLoading(false);
     }
@@ -190,7 +352,7 @@ export default function UsersPage() {
     if (!file) return;
 
     if (!file.name.endsWith('.csv')) {
-      alert('Please upload a CSV file');
+      toast.warning('Please upload a CSV file.');
       return;
     }
 
@@ -200,7 +362,7 @@ export default function UsersPage() {
       const doctorsData = parseCSV(text);
 
       if (doctorsData.length === 0) {
-        alert('No valid doctors found in CSV file. Please check the format.');
+        toast.warning('No valid doctors found in that CSV. Check the format and mobile numbers (10 digits).');
         setUploading(false);
         return;
       }
@@ -212,19 +374,17 @@ export default function UsersPage() {
 
       if (response.totalCreated > 0) {
         setSuccessMessage(`${response.totalCreated} doctor(s) added successfully!`);
-        
-        const refreshResponse = await adminApi.getDoctors(page, limit) as DoctorsResponse;
-        setDoctors(refreshResponse.data || []);
-        setTotalPages(refreshResponse.totalPages || 1);
-        setTotal(refreshResponse.total || 0);
+        refetchFromStart();
       }
 
       if (response.totalErrors > 0) {
-        alert(`${response.totalCreated} doctor(s) added, but ${response.totalErrors} failed. Please check the data.`);
+        toast.warning(
+          `${response.totalCreated} doctor(s) added, but ${response.totalErrors} row(s) failed. Check the data and try again.`,
+        );
       }
     } catch (error: any) {
       console.error('Failed to upload CSV:', error);
-      alert(error.message || 'Failed to upload CSV. Please check the format and try again.');
+      toast.error(error.message || 'Failed to upload CSV. Please check the format and try again.');
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -235,15 +395,12 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-4 lg:space-y-6">
-      {/* Success Message Popup */}
-      {successMessage && (
+      {successMessage ? (
         <div className="fixed top-20 left-4 right-4 sm:left-auto sm:right-6 sm:w-auto bg-green-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-fade-in">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+          <Check className="w-6 h-6 shrink-0" strokeWidth={2} aria-hidden />
           <span className="font-medium">{successMessage}</span>
         </div>
-      )}
+      ) : null}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -267,47 +424,37 @@ export default function UsersPage() {
           >
             {uploading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-teal-700"></div>
+                <Loader2 className="h-4 w-4 animate-spin text-teal-700" strokeWidth={2} aria-hidden />
                 <span>Uploading...</span>
               </>
             ) : (
               <>
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
+                <Upload className="w-5 h-5" strokeWidth={2} aria-hidden />
                 <span>Upload CSV</span>
               </>
             )}
           </label>
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={openAddDoctorModal}
             className="flex items-center gap-2 bg-teal-700 text-white px-3 lg:px-4 py-2 rounded-lg hover:bg-teal-800 transition-colors text-sm lg:text-base"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
+            <Plus className="w-5 h-5" strokeWidth={2} aria-hidden />
             <span>Add Doctor</span>
           </button>
+          {isAdmin ? (
+            <button
+              onClick={handleBulkDelete}
+              disabled={selectedIds.size === 0}
+              className="flex items-center gap-2 bg-red-600 text-white px-3 lg:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
+            >
+              <span>Delete selected</span>
+              {selectedIds.size > 0 ? (
+                <span className="ml-1 inline-flex items-center rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold">
+                  {selectedIds.size}
+                </span>
+              ) : null}
+            </button>
+          ) : null}
           <button
             onClick={handleExport}
             disabled={exporting}
@@ -315,24 +462,12 @@ export default function UsersPage() {
           >
             {exporting ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                <Loader2 className="h-4 w-4 animate-spin text-white" strokeWidth={2} aria-hidden />
                 <span>Exporting...</span>
               </>
             ) : (
               <>
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
+                <Download className="w-5 h-5" strokeWidth={2} aria-hidden />
                 <span>Export to CSV</span>
               </>
             )}
@@ -340,132 +475,199 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Add Doctor Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto m-4">
-            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center rounded-t-xl z-10">
-              <h2 className="text-2xl font-bold text-gray-900">Add Doctor</h2>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleAddDoctor} className="p-6 space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors"
-                  required
-                  placeholder="Dr. John Smith"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 mb-2">
-                  Specialization <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="specialization"
-                  type="text"
-                  value={formData.specialization}
-                  onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors"
-                  required
-                  placeholder="Cardiology"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
-                  Mobile <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="mobile"
-                  type="text"
-                  value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors"
-                  required
-                  pattern="[0-9]{10}"
-                  maxLength={10}
-                  placeholder="9876543210"
-                />
-                <p className="text-xs text-gray-500 mt-1">Must be exactly 10 digits</p>
-              </div>
-
-              <div>
-                <label htmlFor="employee_id" className="block text-sm font-medium text-gray-700 mb-2">
-                  Employee ID <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="employee_id"
-                  type="text"
-                  value={formData.employee_id}
-                  onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors"
-                  required
-                  placeholder="DOC001"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
-                  Gender <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="gender"
-                  value={formData.gender}
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors"
-                  required
-                >
-                  <option value={Gender.MALE}>Male</option>
-                  <option value={Gender.FEMALE}>Female</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="avatar_url" className="block text-sm font-medium text-gray-700 mb-2">
-                  Avatar URL (Optional)
-                </label>
-                <input
-                  id="avatar_url"
-                  type="url"
-                  value={formData.avatar_url || ''}
-                  onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-teal-700 outline-none transition-colors"
-                  placeholder="https://example.com/avatar.jpg"
-                />
-              </div>
-
-              <div className="flex gap-4 pt-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+          role="presentation"
+        >
+          <div className="absolute inset-0 bg-gray-900/45 backdrop-blur-[2px]" aria-hidden />
+          <div
+            className="relative flex max-h-[min(92vh,44rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-2xl shadow-gray-900/10"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-doctor-title"
+          >
+            <div className="shrink-0 bg-gradient-to-r from-teal-700 to-teal-800 px-5 py-4 text-white sm:px-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15">
+                    {editingDoctorId ? (
+                      <PenLine className="h-5 w-5 text-white" strokeWidth={2} aria-hidden />
+                    ) : (
+                      <User className="h-5 w-5 text-white" strokeWidth={2} aria-hidden />
+                    )}
+                  </div>
+                  <div>
+                    <h2 id="add-doctor-title" className="text-lg font-semibold tracking-tight sm:text-xl">
+                      {editingDoctorId ? 'Edit doctor' : 'Add doctor'}
+                    </h2>
+                    <p className="mt-0.5 text-sm text-teal-100/95">
+                      Required fields are marked with <span className="text-red-200">*</span>
+                    </p>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  onClick={() => closeDoctorModal()}
                   disabled={formLoading}
+                  className="rounded-lg p-1.5 text-white/90 transition-colors hover:bg-white/15 disabled:opacity-40"
+                  aria-label="Close"
                 >
-                  Cancel
+                  <X className="h-5 w-5" strokeWidth={2} aria-hidden />
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-3 bg-teal-700 text-white rounded-lg hover:bg-teal-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={formLoading}
-                >
-                  {formLoading ? 'Adding...' : 'Add Doctor'}
-                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleDoctorFormSubmit} className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+                <div className="space-y-5">
+                  <div>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Profile</p>
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-gray-800">
+                          Full name <span className="text-red-600">*</span>
+                        </label>
+                        <input
+                          id="name"
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                          required
+                          placeholder="Dr. John Smith"
+                          autoComplete="name"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="specialization" className="mb-1.5 block text-sm font-medium text-gray-800">
+                          Specialization <span className="text-red-600">*</span>
+                        </label>
+                        <input
+                          id="specialization"
+                          type="text"
+                          value={formData.specialization}
+                          onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                          required
+                          placeholder="e.g. Cardiology"
+                          autoComplete="organization-title"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Contact &amp; ID</p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <label htmlFor="mobile" className="mb-1.5 block text-sm font-medium text-gray-800">
+                          Mobile <span className="text-red-600">*</span>
+                        </label>
+                        <input
+                          id="mobile"
+                          type="text"
+                          inputMode="numeric"
+                          value={formData.mobile}
+                          onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                          required
+                          pattern="[0-9]{10}"
+                          maxLength={10}
+                          placeholder="9876543210"
+                          autoComplete="tel"
+                        />
+                        <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600 ring-1 ring-gray-100">
+                          <Info className="h-3.5 w-3.5 shrink-0 text-teal-600" strokeWidth={2} aria-hidden />
+                          Exactly 10 digits, no spaces or country code
+                        </p>
+                      </div>
+                      <div>
+                        <label htmlFor="employee_id" className="mb-1.5 block text-sm font-medium text-gray-800">
+                          Employee ID <span className="text-red-600">*</span>
+                        </label>
+                        <input
+                          id="employee_id"
+                          type="text"
+                          value={formData.employee_id}
+                          onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-600"
+                          required
+                          disabled={Boolean(editingDoctorId)}
+                          placeholder="DOC001"
+                          autoComplete="off"
+                        />
+                        {editingDoctorId ? (
+                          <p className="mt-1 text-xs text-gray-500">Employee ID cannot be changed after creation.</p>
+                        ) : null}
+                      </div>
+                      <div>
+                        <label htmlFor="gender" className="mb-1.5 block text-sm font-medium text-gray-800">
+                          Gender <span className="text-red-600">*</span>
+                        </label>
+                        <select
+                          id="gender"
+                          value={formData.gender}
+                          onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })}
+                          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                          required
+                        >
+                          <option value={Gender.MALE}>Male</option>
+                          <option value={Gender.FEMALE}>Female</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="avatar_url" className="mb-1.5 block text-sm font-medium text-gray-800">
+                      Avatar URL <span className="font-normal text-gray-500">(optional)</span>
+                    </label>
+                    <input
+                      id="avatar_url"
+                      type="url"
+                      value={formData.avatar_url || ''}
+                      onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="shrink-0 border-t border-gray-100 bg-gray-50/95 px-5 py-4 sm:px-6">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+                  <button
+                    type="button"
+                    onClick={() => closeDoctorModal()}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:opacity-50 sm:w-auto sm:min-w-[7rem]"
+                    disabled={formLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[10rem]"
+                    disabled={formLoading}
+                  >
+                    {formLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-white" strokeWidth={2} aria-hidden />
+                        {editingDoctorId ? 'Saving…' : 'Adding…'}
+                      </>
+                    ) : editingDoctorId ? (
+                      <>
+                        <PenLine className="h-4 w-4" strokeWidth={2} aria-hidden />
+                        Save changes
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
+                        Add doctor
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -473,8 +675,8 @@ export default function UsersPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-700"></div>
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-teal-700" />
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -482,6 +684,17 @@ export default function UsersPage() {
             <table className="w-full min-w-[640px] divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                {isAdmin ? (
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleSelectAllVisible}
+                      aria-label="Select all visible doctors"
+                      className="h-4 w-4 rounded border-gray-300 text-teal-700 focus:ring-teal-600"
+                    />
+                  </th>
+                ) : null}
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Name
                 </th>
@@ -497,18 +710,34 @@ export default function UsersPage() {
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Queries Assigned
                 </th>
+                {isAdmin ? (
+                  <th className="px-3 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                ) : null}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {doctors.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-3 lg:px-6 py-8 text-center text-gray-500">
+                  <td colSpan={isAdmin ? 7 : 5} className="px-3 lg:px-6 py-8 text-center text-gray-500">
                     No doctors found
                   </td>
                 </tr>
               ) : (
                 doctors.map((doctor) => (
                   <tr key={doctor._id}>
+                    {isAdmin ? (
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(doctor._id)}
+                          onChange={() => toggleSelectOne(doctor._id)}
+                          aria-label={`Select doctor ${doctor.name}`}
+                          className="h-4 w-4 rounded border-gray-300 text-teal-700 focus:ring-teal-600"
+                        />
+                      </td>
+                    ) : null}
                     <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {doctor.name}
                     </td>
@@ -526,6 +755,28 @@ export default function UsersPage() {
                         {doctor.queries_assigned?.length || 0}
                       </span>
                     </td>
+                    {isAdmin ? (
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <div className="inline-flex items-center justify-end gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => openEditDoctorModal(doctor)}
+                            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                            aria-label={`Edit ${doctor.name}`}
+                          >
+                            <PenLine className="h-4 w-4" strokeWidth={2} aria-hidden />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(doctor)}
+                            className="rounded-lg p-2 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                            aria-label={`Delete ${doctor.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" strokeWidth={2} aria-hidden />
+                          </button>
+                        </div>
+                      </td>
+                    ) : null}
                   </tr>
                 ))
               )}
@@ -535,64 +786,26 @@ export default function UsersPage() {
         </div>
       )}
 
-      {!loading && totalPages > 1 && (
-        <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-white border-t border-gray-200 px-4 lg:px-6 py-4 shadow-lg z-40">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
-              Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
-              <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
-              <span className="font-medium">{total}</span> results
+      {!loading ? (
+        <div className="flex flex-col items-center gap-3 py-4">
+          <div ref={loadMoreRef} />
+          {loadingMore ? (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-teal-700" />
+              Loading more…
             </div>
-            <div className="flex items-center justify-center gap-2 sm:gap-3">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Previous
-              </button>
-              <div className="flex items-center gap-1 sm:gap-2">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (page <= 3) {
-                    pageNum = i + 1;
-                  } else if (page >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = page - 2 + i;
-                  }
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setPage(pageNum)}
-                      className={`px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
-                        page === pageNum
-                          ? 'bg-teal-700 text-white'
-                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-              <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Next
-              </button>
+          ) : hasMore ? (
+            <div className="text-xs text-gray-500">
+              Showing <span className="font-medium">{doctors.length}</span> of{' '}
+              <span className="font-medium">{total}</span>. Scroll to load more.
             </div>
-          </div>
+          ) : (
+            <div className="text-xs text-gray-500">
+              End of results. Showing <span className="font-medium">{doctors.length}</span>.
+            </div>
+          )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

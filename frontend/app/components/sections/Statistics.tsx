@@ -3,20 +3,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AnimatedCounter } from '../animations/AnimatedCounter';
-
-interface StatItem {
-  value: string;
-  label: string;
-}
-
-const stats: StatItem[] = [
-  { value: '15+', label: 'Years of Experience' },
-  { value: '500+', label: 'Certified Professionals' },
-  { value: '2k+', label: 'Happy Families' },
-  { value: '24x7', label: 'Medical Support' },
-];
+import { useSiteSettings } from '../../contexts/SiteSettingsContext';
 
 export const Statistics: React.FC = () => {
+  const { statistics: stats } = useSiteSettings();
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

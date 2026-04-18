@@ -3,18 +3,21 @@
 import { useState } from 'react';
 import { Header } from '../components/sections/Header';
 import { Footer } from '../components/sections/Footer';
-import { ConsultationForm } from '../components/sections/ConsultationForm';
+import { ConsultationModal } from '../components/sections/ConsultationModal';
 import { Button } from '../components/ui/Button';
+import { useSiteSettings } from '../contexts/SiteSettingsContext';
+import { phoneToTelHref } from '../lib/contact-format';
+import { Mail, MapPin, Phone } from 'lucide-react';
 
 export default function ContactPage() {
   const [showForm, setShowForm] = useState(false);
+  const { footer } = useSiteSettings();
 
   return (
     <>
       <div className="min-h-screen flex flex-col">
         <Header onBookVisitClick={() => setShowForm(true)} />
         <main className="flex-grow">
-          {/* Hero Section */}
           <section className="pt-32 pb-20 bg-gradient-to-br from-gray-50 to-gray-100">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-4xl mx-auto text-center">
@@ -29,35 +32,35 @@ export default function ContactPage() {
             </div>
           </section>
 
-          {/* Contact Information Section */}
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+                    <MapPin className="w-8 h-8 text-teal-700" strokeWidth={2} aria-hidden />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Address</h3>
                   <p className="text-gray-600">
-                    123 Healthcare Street<br />
-                    Medical District<br />
-                    City, State 12345
+                    {footer.addressLine1}
+                    <br />
+                    {footer.addressLine2}
+                    {footer.addressLine3?.trim() ? (
+                      <>
+                        <br />
+                        {footer.addressLine3.trim()}
+                      </>
+                    ) : null}
                   </p>
                 </div>
 
                 <div className="text-center">
                   <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
+                    <Phone className="w-8 h-8 text-teal-700" strokeWidth={2} aria-hidden />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Phone</h3>
                   <p className="text-gray-600 mb-2">
-                    <a href="tel:+1234567890" className="hover:text-teal-700 transition-colors">
-                      +1 (234) 567-890
+                    <a href={phoneToTelHref(footer.contactPhone)} className="hover:text-teal-700 transition-colors">
+                      {footer.contactPhone}
                     </a>
                   </p>
                   <p className="text-sm text-gray-500">Available 24/7</p>
@@ -65,21 +68,18 @@ export default function ContactPage() {
 
                 <div className="text-center">
                   <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
+                    <Mail className="w-8 h-8 text-teal-700" strokeWidth={2} aria-hidden />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Email</h3>
                   <p className="text-gray-600">
-                    <a href="mailto:info@the247care.com" className="hover:text-teal-700 transition-colors">
-                      info@the247care.com
+                    <a href={`mailto:${footer.contactEmail}`} className="hover:text-teal-700 transition-colors">
+                      {footer.contactEmail}
                     </a>
                   </p>
                   <p className="text-sm text-gray-500 mt-2">We respond within 24 hours</p>
                 </div>
               </div>
 
-              {/* Consultation Form CTA */}
               <div className="max-w-2xl mx-auto bg-gray-50 rounded-2xl p-8 md:p-12 text-center">
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
                   Book a Free Consultation
@@ -95,21 +95,21 @@ export default function ContactPage() {
             </div>
           </section>
 
-          {/* Map Section Placeholder */}
           <section className="py-20 bg-gray-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Find Us</h2>
-                <div className="bg-white rounded-xl overflow-hidden shadow-lg h-96 flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <svg className="w-24 h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <p className="text-gray-600">Map integration placeholder</p>
-                    <p className="text-sm text-gray-500 mt-2">Add your preferred map service here (Google Maps, Mapbox, etc.)</p>
-                  </div>
+                <div className="bg-white rounded-xl overflow-hidden shadow-lg h-96 w-full">
+                  <iframe
+                    title="Map - Raipur, Chhattisgarh"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d119066.54141374431!2d81.56064599999999!3d21.2513844!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a28dddd221de241%3A0xad264d89c9850bfa!2sRaipur%2C%20Chhattisgarh!5e0!3m2!1sen!2sin!4v1610000000000!5m2!1sen!2sin"
+                    className="w-full h-full border-0"
+                    loading="lazy"
+                    allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
                 </div>
+                <p className="text-center text-sm text-gray-600 mt-4">Raipur, Chhattisgarh</p>
               </div>
             </div>
           </section>
@@ -117,27 +117,7 @@ export default function ContactPage() {
         <Footer />
       </div>
 
-      {/* Consultation Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center rounded-t-xl z-10">
-              <h2 className="text-2xl font-bold text-gray-900">Schedule a Consultation</h2>
-              <button
-                onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6">
-              <ConsultationForm onClose={() => setShowForm(false)} />
-            </div>
-          </div>
-        </div>
-      )}
+      <ConsultationModal open={showForm} onClose={() => setShowForm(false)} />
     </>
   );
 }

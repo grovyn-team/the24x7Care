@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { Plus } from 'lucide-react';
 import React from 'react';
 
 interface RotatingMedicalCrossProps {
@@ -26,39 +27,14 @@ export const RotatingMedicalCross: React.FC<RotatingMedicalCrossProps> = ({
       }}
       className={className}
     >
-      <svg
+      <Plus
         width={size}
         height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Vertical bar */}
-        <rect x="10" y="4" width="4" height="16" rx="2" fill={color} />
-        {/* Horizontal bar */}
-        <rect x="4" y="10" width="16" height="4" rx="2" fill={color} />
-        {/* Glow effect */}
-        <rect
-          x="10"
-          y="4"
-          width="4"
-          height="16"
-          rx="2"
-          fill={color}
-          opacity="0.3"
-          filter="blur(4px)"
-        />
-        <rect
-          x="4"
-          y="10"
-          width="16"
-          height="4"
-          rx="2"
-          fill={color}
-          opacity="0.3"
-          filter="blur(4px)"
-        />
-      </svg>
+        color={color}
+        strokeWidth={Math.max(2, size / 8)}
+        absoluteStrokeWidth
+        aria-hidden
+      />
     </motion.div>
   );
 };

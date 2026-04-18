@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { Check, ImageIcon, Plus, X } from 'lucide-react';
 import { doctorApi } from '../../lib/api';
+import { useToast } from '../../contexts/ToastContext';
 
 interface Doctor {
   _id: string;
@@ -14,6 +16,7 @@ interface Doctor {
 }
 
 export default function DoctorProfilePage() {
+  const toast = useToast();
   const [profile, setProfile] = useState<Doctor | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -64,7 +67,7 @@ export default function DoctorProfilePage() {
 
   const handleFileUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      toast.warning('Please choose an image file (PNG, JPG, etc.).');
       return;
     }
 
@@ -78,7 +81,7 @@ export default function DoctorProfilePage() {
       setProfile(updated);
     } catch (error: any) {
       console.error('Failed to upload avatar:', error);
-      alert(error.message || 'Failed to upload avatar. Please try again.');
+      toast.error(error.message || 'Failed to upload avatar. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -124,7 +127,7 @@ export default function DoctorProfilePage() {
       setSuccessMessage('Profile updated successfully!');
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      alert(error.message || 'Failed to update profile. Please try again.');
+      toast.error(error.message || 'Failed to update profile. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -140,12 +143,9 @@ export default function DoctorProfilePage() {
 
   return (
     <div className="space-y-4 lg:space-y-6">
-      {/* Success Message Popup */}
       {successMessage && (
         <div className="fixed top-20 left-4 right-4 sm:left-auto sm:right-6 sm:w-auto bg-green-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-fade-in">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+          <Check className="h-6 w-6" strokeWidth={2} />
           <span className="font-medium">{successMessage}</span>
         </div>
       )}
@@ -157,7 +157,6 @@ export default function DoctorProfilePage() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Avatar Section */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Avatar Image
@@ -192,19 +191,7 @@ export default function DoctorProfilePage() {
                 onClick={() => setShowUploadModal(true)}
                 className="flex items-center justify-center h-24 w-24 lg:h-32 lg:w-32 rounded-full border-4 border-dashed border-gray-300 hover:border-teal-500 transition-colors cursor-pointer"
               >
-                <svg
-                  className="w-12 h-12 lg:w-16 lg:h-16 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
+                <Plus className="h-12 w-12 text-gray-400 lg:h-16 lg:w-16" strokeWidth={2} />
               </button>
             )}
           </div>
@@ -282,7 +269,6 @@ export default function DoctorProfilePage() {
         </form>
       </div>
 
-      {/* Upload Avatar Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
@@ -292,9 +278,7 @@ export default function DoctorProfilePage() {
                 onClick={() => setShowUploadModal(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="h-6 w-6" strokeWidth={2} />
               </button>
             </div>
 
@@ -312,19 +296,7 @@ export default function DoctorProfilePage() {
               >
                 <div className="space-y-4">
                   <div className="flex justify-center">
-                    <svg
-                      className="w-16 h-16 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
+                    <ImageIcon className="h-16 w-16 text-gray-400" strokeWidth={1.75} />
                   </div>
                   <div>
                     <p className="text-sm text-gray-600 mb-2">

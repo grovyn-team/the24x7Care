@@ -3,9 +3,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PatientsService } from './patients.service';
 import { PatientsController } from './patients.controller';
 import { Patient, PatientSchema } from '../schemas/patient.schema';
+import { Enquiry, EnquirySchema } from '../schemas/enquiry.schema';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Patient.name, schema: PatientSchema }])],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Patient.name, schema: PatientSchema },
+      { name: Enquiry.name, schema: EnquirySchema },
+    ]),
+  ],
   controllers: [PatientsController],
   providers: [PatientsService],
   exports: [PatientsService],

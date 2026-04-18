@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface HeaderProps {
@@ -33,7 +34,6 @@ export const Header: React.FC<HeaderProps> = ({ onBookVisitClick }) => {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-soft border-b border-gray-100">
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 gap-2 md:gap-4">
-          {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
             <Image
               src="/the247_care_logo.svg"
@@ -45,7 +45,6 @@ export const Header: React.FC<HeaderProps> = ({ onBookVisitClick }) => {
             <span className="text-lg md:text-xl font-bold text-gray-900 whitespace-nowrap">The24x7Care</span>
           </Link>
 
-          {/* Desktop Navigation - Show from md breakpoint (768px) */}
           <div className="hidden md:flex items-center space-x-3 lg:space-x-6 xl:space-x-8 flex-1 justify-center mx-2 lg:mx-4 min-w-0">
             {navLinks.map((link) => {
               const active = isActive(link.href);
@@ -68,7 +67,6 @@ export const Header: React.FC<HeaderProps> = ({ onBookVisitClick }) => {
             })}
           </div>
 
-          {/* CTA Button */}
           <div className="hidden md:block flex-shrink-0 ml-2 lg:ml-4">
             <Button 
               variant="primary" 
@@ -81,31 +79,15 @@ export const Header: React.FC<HeaderProps> = ({ onBookVisitClick }) => {
             </Button>
           </div>
 
-          {/* Mobile Menu Button - Only show below md (768px) */}
           <button
             className="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 flex-shrink-0"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              {isMenuOpen ? (
-                <path d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            {isMenuOpen ? <X className="h-6 w-6" strokeWidth={2} /> : <Menu className="h-6 w-6" strokeWidth={2} />}
           </button>
         </div>
 
-        {/* Mobile Menu - Only show below md (768px) */}
         {isMenuOpen && (
           <div className="md:hidden pb-4 space-y-2">
             {navLinks.map((link) => {

@@ -20,6 +20,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../schemas/user.schema';
 import { EnquiryStatus } from '../schemas/enquiry.schema';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { BulkDeleteDto } from '../common/dto/bulk-delete.dto';
 
 @ApiTags('Enquiries')
 @Controller('enquiries')
@@ -78,6 +79,15 @@ export class EnquiriesController {
   @ApiOperation({ summary: 'Delete enquiry (admin only)' })
   async remove(@Param('id') id: string) {
     return this.enquiriesService.remove(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post('bulk-delete')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bulk delete enquiries (admin only)' })
+  async bulkDelete(@Body() body: BulkDeleteDto) {
+    return this.enquiriesService.bulkRemove(body.ids);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

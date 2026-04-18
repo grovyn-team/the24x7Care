@@ -13,6 +13,7 @@ import { PaymentModule } from './payment/payment.module';
 import { AdminModule } from './admin/admin.module';
 import { HeroDiscountModule } from './hero-discount/hero-discount.module';
 import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
+import { SiteSettingsModule } from './site-settings/site-settings.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
     AdminModule,
     HeroDiscountModule,
     CloudinaryModule,
+    SiteSettingsModule,
   ],
 })
 export class AppModule {}

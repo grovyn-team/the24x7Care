@@ -57,11 +57,11 @@ export default function DoctorLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-gray-50">
       <DoctorHeader onMenuToggle={toggleMenu} isMenuOpen={isMenuOpen} />
-      <div className="flex">
+      <div className="relative flex min-h-0 flex-1">
         <DoctorSidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-        <main className="flex-1 p-4 lg:p-6 mt-16 pb-24 lg:ml-64 lg:pb-6 w-full">
+        <main className="min-h-0 w-full flex-1 overflow-y-auto overscroll-y-contain p-4 pb-24 lg:ml-64 lg:p-6 lg:pb-6">
           {children}
         </main>
       </div>

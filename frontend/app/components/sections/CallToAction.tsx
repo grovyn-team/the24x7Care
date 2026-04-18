@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '../ui/Button';
-import { ConsultationForm } from './ConsultationForm';
+import { CONSULTATION_MODAL_PANEL_CLASS, ConsultationModalPanel } from './ConsultationModal';
 
 export const CallToAction: React.FC = () => {
   const [showForm, setShowForm] = React.useState(false);
@@ -74,39 +74,24 @@ export const CallToAction: React.FC = () => {
 
       {showForm && (
         <motion.div
-          className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-slate-900/50 via-slate-900/45 to-teal-950/40 p-4 backdrop-blur-[10px] sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={() => setShowForm(false)}
         >
           <motion.div
-            className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            className={`relative z-10 ${CONSULTATION_MODAL_PANEL_CLASS}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="consultation-modal-title"
+            initial={{ opacity: 0, scale: 0.96, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, scale: 0.96, y: 16 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center rounded-t-xl z-10">
-              <h2 className="text-2xl font-bold text-gray-900">Schedule a Consultation</h2>
-              <button
-                onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <motion.div
-              className="p-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-            >
-              <ConsultationForm onClose={() => setShowForm(false)} />
-            </motion.div>
+            <ConsultationModalPanel onClose={() => setShowForm(false)} />
           </motion.div>
         </motion.div>
       )}

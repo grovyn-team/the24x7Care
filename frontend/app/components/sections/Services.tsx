@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { ArrowRight, Heart, Home, UserRound } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { api } from '../../lib/api';
 
@@ -15,28 +16,13 @@ interface Service {
 }
 
 const getServiceIcon = (title: string) => {
+  const common = 'h-10 w-10';
   const iconMap: { [key: string]: React.ReactNode } = {
-    'Doctor Consultation': (
-      <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
-    'Home Care Services': (
-      <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-    'Nurse/Caretaker': (
-      <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-      </svg>
-    ),
+    'Doctor Consultation': <UserRound className={common} strokeWidth={2.5} />,
+    'Home Care Services': <Home className={common} strokeWidth={2.5} />,
+    'Nurse/Caretaker': <Heart className={common} strokeWidth={2.5} />,
   };
-  return iconMap[title] || (
-    <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-    </svg>
-  );
+  return iconMap[title] || <Heart className={common} strokeWidth={2.5} />;
 };
 
 export const Services: React.FC = () => {
@@ -150,9 +136,7 @@ export const Services: React.FC = () => {
               className="inline-flex items-center gap-2 text-teal-700 font-semibold hover:text-teal-800 border border-teal-700 px-6 py-2.5 rounded-lg transition-colors duration-200 hover:bg-teal-50"
             >
               View All Services
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
             </Link>
           </motion.div>
         </motion.div>
@@ -201,9 +185,7 @@ export const Services: React.FC = () => {
                     className="text-teal-200 font-semibold hover:text-white inline-flex items-center gap-2 transition-colors duration-200 group"
                   >
                     Book Now
-                    <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
+                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" strokeWidth={2} />
                   </Link>
                 </motion.div>
                 </Card>

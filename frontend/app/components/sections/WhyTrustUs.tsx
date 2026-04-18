@@ -3,93 +3,36 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Card } from '../ui/Card';
-
-interface Feature {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
-
-const features: Feature[] = [
-  {
-    icon: (
-      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-    ),
-    title: 'Vetted Professionals',
-    description: 'Every caregiver undergoes rigorous background checks and continuous training.',
-  },
-  {
-    icon: (
-      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    ),
-    title: 'Flexible Scheduling',
-    description: 'From 2-hour visits to 24/7 live-in care, we adapt to your schedule.',
-  },
-  {
-    icon: (
-      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
-    title: 'Personalized Matching',
-    description: 'We match caregivers based on compatibility, personality, and specific needs.',
-  },
-  {
-    icon: (
-      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-    title: 'Cost Effective',
-    description: 'Transparent pricing with no hidden fees, ensuring you get value for your healthcare investment.',
-  },
-  {
-    icon: (
-      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      </svg>
-    ),
-    title: '100% Confidential',
-    description: 'Complete privacy guaranteed for all your medical information with strict confidentiality protocols.',
-  },
-];
-
-const testimonials = [
-  {
-    id: '1',
-    quote: 'The caregivers treated my father like their own family. We are forever grateful.',
-    author: 'Sarah Jenkins',
-    rating: 5,
-  },
-  {
-    id: '2',
-    quote: 'The caregivers treated my father with such dignity and respect. It gave us peace of mind knowing he was in safe hands every single day.',
-    author: 'Michael Chen',
-    rating: 5,
-  },
-  {
-    id: '3',
-    quote: 'Professional, caring, and reliable. The team went above and beyond to ensure my mother\'s comfort and well-being.',
-    author: 'Emily Rodriguez',
-    rating: 5,
-  },
-];
+import { Star } from 'lucide-react';
+import { useSiteSettings } from '../../contexts/SiteSettingsContext';
+import { WhyTrustFeatureIcon } from '../../lib/about-page-icons';
 
 export const WhyTrustUs: React.FC = () => {
+  const { about, testimonials } = useSiteSettings();
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const slideTestimonials = testimonials.map((t, i) => ({
+    id: String(i),
+    quote: t.quote,
+    author: t.author,
+    rating: t.rating ?? 5,
+  }));
+
   useEffect(() => {
+    setCurrentIndex(0);
+  }, [testimonials.length]);
+
+  useEffect(() => {
+    if (testimonials.length === 0) return undefined;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     }, 4000);
-
     return () => clearInterval(interval);
-  }, []);
+  }, [testimonials.length]);
+
+  const imgSrc = about.whyTrustImageUrl?.trim() || '/doc_placeholder.png';
+  const isRemoteImage = /^https?:\/\//i.test(imgSrc);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -150,49 +93,54 @@ export const WhyTrustUs: React.FC = () => {
           >
             <div className="relative rounded-2xl overflow-hidden shadow-xl bg-white p-2">
               <div className="aspect-[4/3] relative rounded-xl overflow-hidden">
-                <Image
-                  src="/doc_placeholder.png"
-                  alt="Medical Professional - Quality Care"
-                  fill
-                  className="object-cover object-top"
-                  priority
-                />
+                {isRemoteImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={imgSrc}
+                    alt={about.whyTrustImageAlt}
+                    className="absolute inset-0 h-full w-full object-cover object-top"
+                  />
+                ) : (
+                  <Image
+                    src={imgSrc}
+                    alt={about.whyTrustImageAlt}
+                    fill
+                    className="object-cover object-top"
+                    priority
+                  />
+                )}
               </div>
-              
-              <div className="mt-4 overflow-hidden relative">
-                <div
-                  className="flex transition-transform duration-1000 ease-in-out"
-                  style={{
-                    transform: `translateX(-${currentIndex * 100}%)`,
-                  }}
-                >
-                  {testimonials.map((testimonial) => (
-                    <div
-                      key={testimonial.id}
-                      className="w-full flex-shrink-0 bg-white rounded-xl shadow-xl p-5 border border-gray-200 min-h-[180px] flex flex-col"
-                    >
-                      <div className="flex items-center gap-1 mb-3">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <svg
-                            key={i}
-                            className="w-4 h-4 text-yellow-400 fill-current"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ))}
-                      </div>
-                      <p 
-                        className="text-gray-700 italic mb-2 leading-relaxed text-sm flex-1 break-words"
-                        style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
+
+              {slideTestimonials.length > 0 && (
+                <div className="mt-4 overflow-hidden relative">
+                  <div
+                    className="flex transition-transform duration-1000 ease-in-out"
+                    style={{
+                      transform: `translateX(-${currentIndex * 100}%)`,
+                    }}
+                  >
+                    {slideTestimonials.map((testimonial) => (
+                      <div
+                        key={testimonial.id}
+                        className="w-full flex-shrink-0 bg-white rounded-xl shadow-xl p-5 border border-gray-200 min-h-[180px] flex flex-col"
                       >
-                        &quot;{testimonial.quote}&quot;
-                      </p>
-                      <p className="text-gray-900 font-semibold text-sm mt-auto">- {testimonial.author}</p>
-                    </div>
-                  ))}
+                        <div className="flex items-center gap-1 mb-3">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" strokeWidth={0} />
+                          ))}
+                        </div>
+                        <p
+                          className="text-gray-700 italic mb-2 leading-relaxed text-sm flex-1 break-words"
+                          style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
+                        >
+                          &quot;{testimonial.quote}&quot;
+                        </p>
+                        <p className="text-gray-900 font-semibold text-sm mt-auto">- {testimonial.author}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
 
@@ -203,9 +151,7 @@ export const WhyTrustUs: React.FC = () => {
             whileInView="visible"
             viewport={{ once: true, margin: '-100px' }}
           >
-            <motion.div
-              variants={containerVariants}
-            >
+            <motion.div variants={containerVariants}>
               <motion.h2
                 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight"
                 initial={{ opacity: 0, y: 20 }}
@@ -213,7 +159,7 @@ export const WhyTrustUs: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
-                Why Families Trust Us With Their Loved Ones
+                {about.whyTrustHeading}
               </motion.h2>
               <motion.p
                 className="text-base text-teal-100 leading-relaxed"
@@ -222,39 +168,27 @@ export const WhyTrustUs: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                We don&apos;t just provide medical care; we build relationships. Our approach is holistic, 
-                focusing on physical health, mental well-being, and emotional support.
+                {about.whyTrustSubheading}
               </motion.p>
             </motion.div>
 
-            <motion.div
-              className="space-y-4"
-              variants={containerVariants}
-            >
-              {features.map((feature, index) => (
+            <motion.div className="space-y-4" variants={containerVariants}>
+              {about.whyTrustFeatures.map((feature, index) => (
                 <motion.div
-                  key={index}
+                  key={`${feature.title}-${index}`}
                   variants={featureVariants}
                   className="flex gap-4 p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
                   whileHover={{ x: 5, scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <motion.div
-                    className="flex-shrink-0"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.5 }}
-                  >
+                  <motion.div className="flex-shrink-0" whileHover={{ scale: 1.1 }} transition={{ duration: 0.5 }}>
                     <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
-                      {feature.icon}
+                      <WhyTrustFeatureIcon iconKey={feature.iconKey} />
                     </div>
                   </motion.div>
                   <div className="flex-1">
-                    <h3 className="text-base font-bold text-white mb-1">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-teal-100 leading-relaxed">
-                      {feature.description}
-                    </p>
+                    <h3 className="text-base font-bold text-white mb-1">{feature.title}</h3>
+                    <p className="text-sm text-teal-100 leading-relaxed">{feature.description}</p>
                   </div>
                 </motion.div>
               ))}

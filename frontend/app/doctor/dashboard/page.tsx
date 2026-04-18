@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { doctorApi } from '../../lib/api';
-
 interface Enquiry {
   _id: string;
   patient_name: string;
@@ -79,8 +78,8 @@ export default function DoctorDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-700"></div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-teal-700" />
       </div>
     );
   }
@@ -92,16 +91,14 @@ export default function DoctorDashboardPage() {
         <p className="text-gray-600 mt-1 text-sm lg:text-base">Welcome to your doctor portal</p>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Queries" value={stats.total} />
         <StatCard title="New Queries" value={stats.new} />
         <StatCard title="In Progress" value={stats.viewed} />
         <StatCard title="Completed" value={stats.completed} />
       </div>
 
-      {/* Recent Queries */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm lg:p-6">
         <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">Recent Queries</h2>
         {enquiries.length > 0 ? (
           <div className="overflow-x-auto">

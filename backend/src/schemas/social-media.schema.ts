@@ -8,8 +8,8 @@ export class SocialMedia {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ required: true })
-  icon_url: string;
+  @Prop({ required: false })
+  icon_url?: string;
 
   @Prop({ required: true })
   href: string;

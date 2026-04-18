@@ -6,6 +6,8 @@ import { Enquiry, EnquirySchema } from '../schemas/enquiry.schema';
 import { Doctor, DoctorSchema } from '../schemas/doctor.schema';
 import { Service, ServiceSchema } from '../schemas/service.schema';
 import { SocialMedia, SocialMediaSchema } from '../schemas/social-media.schema';
+import { CoreValue, CoreValueSchema } from '../schemas/core-value.schema';
+import { LeadershipTeam, LeadershipTeamSchema } from '../schemas/leadership-team.schema';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { SocialMedia, SocialMediaSchema } from '../schemas/social-media.schema';
       { name: Doctor.name, schema: DoctorSchema },
       { name: Service.name, schema: ServiceSchema },
       { name: SocialMedia.name, schema: SocialMediaSchema },
+      { name: CoreValue.name, schema: CoreValueSchema },
+      { name: LeadershipTeam.name, schema: LeadershipTeamSchema },
     ]),
   ],
   controllers: [AdminController],

@@ -19,4 +19,10 @@ export class AdminController {
   async getDashboard() {
     return this.adminService.getDashboardStats();
   }
+
+  @Get('content/summary')
+  @ApiOperation({ summary: 'Counts for Content Management hub (one request)' })
+  async getContentSummary() {
+    return this.adminService.getContentSummary();
+  }
 }

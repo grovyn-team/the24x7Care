@@ -75,6 +75,12 @@ export class DoctorsService {
     return { message: 'Doctor deleted successfully' };
   }
 
+  async bulkRemove(ids: string[]) {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    const result = await this.doctorModel.deleteMany({ _id: { $in: objectIds } }).exec();
+    return { deletedCount: result.deletedCount ?? 0 };
+  }
+
   async findAllForExport() {
     return this.doctorModel
       .find()

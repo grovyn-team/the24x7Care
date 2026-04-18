@@ -2,10 +2,9 @@ export function exportToCSV<T extends Record<string, any>>(
   data: T[],
   filename: string,
   headers?: string[]
-) {
+): boolean {
   if (data.length === 0) {
-    alert('No data to export');
-    return;
+    return false;
   }
 
   const csvHeaders = headers || Object.keys(data[0]);
@@ -38,12 +37,13 @@ export function exportToCSV<T extends Record<string, any>>(
   document.body.removeChild(link);
   
   URL.revokeObjectURL(url);
+  return true;
 }
 
 export function exportToExcel<T extends Record<string, any>>(
   data: T[],
   filename: string,
   headers?: string[]
-) {
-  exportToCSV(data, filename, headers);
+): boolean {
+  return exportToCSV(data, filename, headers);
 }

@@ -17,8 +17,7 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [display, setDisplay] = useState(0);
-  
-  // Extract numeric value and suffix from string like "15+" or "2k+"
+
   const numericValue = parseFloat(value.replace(/[^0-9.]/g, ''));
   const originalSuffix = value.replace(/[0-9.]/g, '') || suffix;
   

@@ -6,6 +6,7 @@ export type PatientDocument = Patient & Document;
 export enum Gender {
   MALE = 'male',
   FEMALE = 'female',
+  OTHER = 'others',
 }
 
 @Schema({ timestamps: true })

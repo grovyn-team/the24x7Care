@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { doctorApi } from '../../lib/api';
-
+import { useToast } from '../../contexts/ToastContext';
 interface Enquiry {
   _id: string;
   patient_name: string;
@@ -22,6 +22,7 @@ interface EnquiriesResponse {
 }
 
 export default function DoctorQueriesPage() {
+  const toast = useToast();
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -56,7 +57,7 @@ export default function DoctorQueriesPage() {
       setEnquiries(response.data || []);
     } catch (error: any) {
       console.error('Failed to update status:', error);
-      alert(error.message || 'Failed to update status. Please try again.');
+      toast.error(error.message || 'Failed to update status. Please try again.');
     } finally {
       setUpdating(null);
     }
@@ -98,8 +99,8 @@ export default function DoctorQueriesPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-700"></div>
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-teal-700" />
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -172,8 +173,7 @@ export default function DoctorQueriesPage() {
         </div>
       )}
 
-      {/* Pagination */}
-      {!loading && totalPages > 1 && (
+      {!loading && totalPages > 1 ? (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="text-sm text-gray-600">
             Showing page {page} of {totalPages}
@@ -195,7 +195,7 @@ export default function DoctorQueriesPage() {
             </button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

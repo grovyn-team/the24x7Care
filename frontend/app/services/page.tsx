@@ -2,9 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import type { LucideIcon } from 'lucide-react';
+import {
+  Activity,
+  Apple,
+  ArrowRight,
+  Baby,
+  BookOpen,
+  Brain,
+  Briefcase,
+  Calendar,
+  Check,
+  FileText,
+  FlaskConical,
+  Heart,
+  Home,
+  Lightbulb,
+  Package,
+  Smile,
+  User,
+  Zap,
+} from 'lucide-react';
 import { Header } from '../components/sections/Header';
 import { Footer } from '../components/sections/Footer';
-import { ConsultationForm } from '../components/sections/ConsultationForm';
+import { ConsultationModal } from '../components/sections/ConsultationModal';
 import { api } from '../lib/api';
 
 interface Service {
@@ -15,110 +36,32 @@ interface Service {
   book_via?: string;
 }
 
-const getServiceIcon = (title: string) => {
-  const iconMap: { [key: string]: React.ReactNode } = {
-    'Physiotherapy': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
-    'Ayurveda & Wellness': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-    ),
-    'Homeopathy': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-      </svg>
-    ),
-    'Doctor Consultation': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
-    'Home Care Services': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-    'Nurse/Caretaker': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-      </svg>
-    ),
-    'Nutrition & Diet Consultation': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-    ),
-    'Lab Test (online booking)': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
-    'Lab Test at home': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
-    'Mental Wellness': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-      </svg>
-    ),
-    'Medicines home delivery': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    ),
-    'Jobs in Healthcare': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-    'Morning Powder': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-      </svg>
-    ),
-    'Lab Reports': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
-    'Appointments': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    ),
-    'Sickle Cell Care': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-      </svg>
-    ),
-    'Diabetic Care': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
-    'Skin Hair Beauty & Health': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-    'Maternity & Child Care': (
-      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-    ),
-  };
-  return iconMap[title] || (
-    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-    </svg>
-  );
+const serviceIconByTitle: Record<string, LucideIcon> = {
+  Physiotherapy: Zap,
+  'Ayurveda & Wellness': BookOpen,
+  Homeopathy: Lightbulb,
+  'Doctor Consultation': User,
+  'Home Care Services': Home,
+  'Nurse/Caretaker': Heart,
+  'Nutrition & Diet Consultation': Apple,
+  'Lab Test (online booking)': FileText,
+  'Lab Test at home': FileText,
+  'Mental Wellness': Brain,
+  'Medicines home delivery': Package,
+  'Jobs in Healthcare': Briefcase,
+  'Morning Powder': FlaskConical,
+  'Lab Reports': FileText,
+  Appointments: Calendar,
+  'Sickle Cell Care': Heart,
+  'Diabetic Care': Activity,
+  'Skin Hair Beauty & Health': Smile,
+  'Maternity & Child Care': Baby,
 };
+
+function ServiceIcon({ title }: { title: string }) {
+  const Icon = serviceIconByTitle[title] || Heart;
+  return <Icon className="w-12 h-12 text-white" strokeWidth={2.5} aria-hidden />;
+}
 
 export default function ServicesPage() {
   const [showForm, setShowForm] = useState(false);
@@ -230,7 +173,7 @@ export default function ServicesPage() {
                           <div className="relative z-10">
                             <div className="mb-6 p-5 bg-white/10 backdrop-blur-sm rounded-2xl w-fit border border-white/30 group-hover:bg-white/20 group-hover:border-white/50 group-hover:scale-110 transition-all duration-500 shadow-lg">
                               <div className="text-white">
-                                {getServiceIcon(service.title)}
+                                <ServiceIcon title={service.title} />
                               </div>
                             </div>
                             <h3 className="text-2xl lg:text-3xl font-bold text-white mb-5 group-hover:text-teal-200 transition-colors duration-300 leading-tight">
@@ -251,9 +194,7 @@ export default function ServicesPage() {
                                     className="flex items-center text-teal-100 text-sm lg:text-base"
                                   >
                                     <div className="w-5 h-5 mr-3 bg-teal-600 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-teal-500 transition-colors">
-                                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                      </svg>
+                                      <Check className="w-3 h-3 text-white" strokeWidth={3} aria-hidden />
                                     </div>
                                     {perk}
                                   </motion.li>
@@ -265,9 +206,11 @@ export default function ServicesPage() {
                               className="mt-auto w-full bg-white text-teal-800 font-semibold py-4 px-6 rounded-xl hover:bg-teal-50 hover:shadow-lg transform hover:scale-105 transition-all duration-300 inline-flex items-center justify-center gap-2 group/btn shadow-md"
                             >
                               <span>Book Now</span>
-                              <svg className="w-5 h-5 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                              </svg>
+                              <ArrowRight
+                                className="w-5 h-5 transition-transform duration-300 group-hover/btn:translate-x-1"
+                                strokeWidth={2.5}
+                                aria-hidden
+                              />
                             </button>
                           </div>
                         </div>
@@ -320,7 +263,7 @@ export default function ServicesPage() {
                           <div className="relative z-10">
                             <div className="mb-5 p-4 bg-white/10 backdrop-blur-sm rounded-xl w-fit border border-white/20 group-hover:bg-white/15 group-hover:border-white/30 group-hover:scale-110 transition-all duration-500">
                               <div className="text-white">
-                                {getServiceIcon(service.title)}
+                                <ServiceIcon title={service.title} />
                               </div>
                             </div>
                             <h3 className="text-xl lg:text-2xl font-bold text-white mb-4 group-hover:text-teal-200 transition-colors duration-300 leading-tight">
@@ -353,9 +296,11 @@ export default function ServicesPage() {
                               className="mt-auto w-full text-teal-200 font-semibold hover:text-white hover:bg-white/10 py-3 px-5 rounded-xl border border-white/20 hover:border-white/40 inline-flex items-center justify-center gap-2 transition-all duration-300 group/btn backdrop-blur-sm"
                             >
                               <span>Book Now</span>
-                              <svg className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                              </svg>
+                              <ArrowRight
+                                className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1"
+                                strokeWidth={2.5}
+                                aria-hidden
+                              />
                             </button>
                           </div>
                         </div>
@@ -376,26 +321,7 @@ export default function ServicesPage() {
         <Footer />
       </div>
 
-      {showForm && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center rounded-t-xl z-10">
-              <h2 className="text-2xl font-bold text-gray-900">Schedule a Consultation</h2>
-              <button
-                onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6">
-              <ConsultationForm onClose={() => setShowForm(false)} />
-            </div>
-          </div>
-        </div>
-      )}
+      <ConsultationModal open={showForm} onClose={() => setShowForm(false)} />
     </>
   );
 }
