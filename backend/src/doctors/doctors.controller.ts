@@ -180,7 +180,6 @@ export class DoctorsController {
   @Post('bulk-delete')
   @ApiOperation({ summary: 'Bulk delete doctors (admin only)' })
   async bulkDelete(@Body() body: BulkDeleteDto) {
-    // Ensure there are no dangling enquiry assignees
     await this.enquiriesService.bulkUnassignDoctorIds(body.ids);
     return this.doctorsService.bulkRemove(body.ids);
   }

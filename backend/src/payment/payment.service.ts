@@ -7,26 +7,8 @@ export class PaymentService {
   constructor(private configService: ConfigService) {}
 
   async createPaymentOrder(createPaymentDto: CreatePaymentDto) {
-    // This is a placeholder for payment gateway integration
-    // You can integrate Razorpay, Stripe, or any other payment gateway here
-    
     const razorpayKeyId = this.configService.get<string>('RAZORPAY_KEY_ID');
-    const razorpayKeySecret = this.configService.get<string>('RAZORPAY_KEY_SECRET');
 
-    // Example Razorpay integration (you'll need to install razorpay package)
-    // const Razorpay = require('razorpay');
-    // const razorpay = new Razorpay({
-    //   key_id: razorpayKeyId,
-    //   key_secret: razorpayKeySecret,
-    // });
-
-    // const order = await razorpay.orders.create({
-    //   amount: createPaymentDto.amount * 100, // Amount in paise
-    //   currency: createPaymentDto.currency || 'INR',
-    //   receipt: createPaymentDto.enquiry_id,
-    // });
-
-    // For now, return a mock response
     return {
       order_id: `order_${Date.now()}`,
       amount: createPaymentDto.amount,
@@ -38,9 +20,6 @@ export class PaymentService {
   }
 
   async verifyPayment(paymentId: string, orderId: string) {
-    // Verify payment with payment gateway
-    // This is a placeholder - implement actual verification logic
-    
     return {
       success: true,
       payment_id: paymentId,

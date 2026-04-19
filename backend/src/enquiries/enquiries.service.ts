@@ -55,7 +55,6 @@ export class EnquiriesService {
       await patient.save();
       console.log(`New patient created: ${patient.patient_mob}`);
     }
-    // Existing row keyed by mobile: keep first-recorded name/age/gender; truth per submission lives on Enquiry.
 
     const enquiry = new this.enquiryModel({
       patient_name: createEnquiryDto.patient_name,
@@ -172,8 +171,6 @@ export class EnquiriesService {
 
     const newAssigneeId = assigneeRefId(savedEnquiry.assignee);
 
-    // Update doctor's queries_assigned array
-    // Remove from old assignee if exists
     if (oldAssigneeId && oldAssigneeId !== newAssigneeId) {
       await this.doctorModel.findByIdAndUpdate(
         oldAssigneeId,

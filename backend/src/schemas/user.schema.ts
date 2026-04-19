@@ -30,7 +30,7 @@ export class User {
   refreshToken: string;
 
   @Prop({ type: String, default: null })
-  doctorId: string; // Reference to Doctor employee_id if role is doctor
+  doctorId: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

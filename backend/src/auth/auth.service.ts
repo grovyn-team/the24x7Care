@@ -51,16 +51,14 @@ export class AuthService {
     let dbUser = await this.userModel.findOne({ email: user.email }).exec();
     
     if (!dbUser) {
-      // Create new user with Google OAuth
       dbUser = new this.userModel({
         email: user.email,
-        password: '', // No password for OAuth users
-        role: UserRole.DOCTOR, // Default role, can be changed
+        password: '',
+        role: UserRole.DOCTOR,
         googleId: user.googleId,
       });
       await dbUser.save();
     } else if (!dbUser.googleId) {
-      // Link Google account to existing user
       dbUser.googleId = user.googleId;
       await dbUser.save();
     }

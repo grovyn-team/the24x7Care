@@ -32,9 +32,7 @@ export class AuthController {
   @Get('google')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Initiate Google OAuth login' })
-  async googleAuth() {
-    // Guard redirects to Google
-  }
+  async googleAuth() {}
 
   @Public()
   @Get('google/callback')
