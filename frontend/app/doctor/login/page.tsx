@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 
 export default function DoctorLoginPage() {
   const [email, setEmail] = useState('');
@@ -10,7 +10,6 @@ export default function DoctorLoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +75,14 @@ export default function DoctorLoginPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-transparent transition-all"
               placeholder="Enter your password"
             />
+            <div className="text-right mt-1">
+              <Link
+                href="/doctor/forgot-password"
+                className="text-sm text-teal-700 hover:underline font-medium"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <button

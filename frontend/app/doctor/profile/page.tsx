@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Check, ImageIcon, Plus, X } from 'lucide-react';
-import { doctorApi } from '../../lib/api';
+import { Check, ImageIcon, Lock, Plus, X } from 'lucide-react';
+import { authApi, doctorApi } from '../../lib/api';
 import { useToast } from '../../contexts/ToastContext';
 
 interface Doctor {
@@ -32,6 +32,15 @@ export default function DoctorProfilePage() {
     gender: 'male' as 'male' | 'female',
     avatar_url: '',
   });
+
+  const [pwOld, setPwOld] = useState('');
+  const [pwOtp, setPwOtp] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwStep, setPwStep] = useState<1 | 2>(1);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwMsg, setPwMsg] = useState('');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -110,6 +119,50 @@ export default function DoctorProfilePage() {
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       handleFileUpload(e.target.files[0]);
+    }
+  };
+
+  const sendPwOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError('');
+    setPwMsg('');
+    setPwLoading(true);
+    try {
+      const res = await authApi.sendChangePasswordOtp(pwOld);
+      setPwMsg(res.message);
+      setPwStep(2);
+    } catch (err: unknown) {
+      setPwError(err instanceof Error ? err.message : 'Could not send code');
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const submitPwChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError('');
+    if (pwNew !== pwConfirm) {
+      setPwError('New passwords do not match.');
+      return;
+    }
+    if (pwNew.length < 8) {
+      setPwError('Password must be at least 8 characters.');
+      return;
+    }
+    setPwLoading(true);
+    try {
+      await authApi.changePassword(pwOld, pwNew, pwOtp.trim());
+      setPwOld('');
+      setPwOtp('');
+      setPwNew('');
+      setPwConfirm('');
+      setPwStep(1);
+      setPwMsg('Password updated successfully.');
+      toast.success('Password updated.');
+    } catch (err: unknown) {
+      setPwError(err instanceof Error ? err.message : 'Update failed');
+    } finally {
+      setPwLoading(false);
     }
   };
 
@@ -267,6 +320,127 @@ export default function DoctorProfilePage() {
             </button>
           </div>
         </form>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-800">
+            <Lock className="h-5 w-5" strokeWidth={2} aria-hidden />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Change password</h2>
+            <p className="text-sm text-gray-600 mt-0.5">
+              We email you a one-time code after you confirm your current password.
+            </p>
+          </div>
+        </div>
+
+        {pwError ? (
+          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {pwError}
+          </div>
+        ) : null}
+        {pwMsg ? (
+          <div className="mb-3 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-sm text-teal-900">
+            {pwMsg}
+          </div>
+        ) : null}
+
+        {pwStep === 1 ? (
+          <form onSubmit={sendPwOtp} className="space-y-4 max-w-md">
+            <div>
+              <label htmlFor="cp-old" className="block text-sm font-medium text-gray-700 mb-1">
+                Current password
+              </label>
+              <input
+                id="cp-old"
+                type="password"
+                value={pwOld}
+                onChange={(e) => setPwOld(e.target.value)}
+                required
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                autoComplete="current-password"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={pwLoading}
+              className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+            >
+              {pwLoading ? 'Sending…' : 'Email verification code'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={submitPwChange} className="space-y-4 max-w-md">
+            <div>
+              <label htmlFor="cp-otp" className="block text-sm font-medium text-gray-700 mb-1">
+                Code from email
+              </label>
+              <input
+                id="cp-otp"
+                inputMode="numeric"
+                maxLength={6}
+                value={pwOtp}
+                onChange={(e) => setPwOtp(e.target.value.replace(/\D/g, ''))}
+                required
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm tracking-widest focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="cp-new" className="block text-sm font-medium text-gray-700 mb-1">
+                New password
+              </label>
+              <input
+                id="cp-new"
+                type="password"
+                value={pwNew}
+                onChange={(e) => setPwNew(e.target.value)}
+                required
+                minLength={8}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                autoComplete="new-password"
+              />
+            </div>
+            <div>
+              <label htmlFor="cp-cf" className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm new password
+              </label>
+              <input
+                id="cp-cf"
+                type="password"
+                value={pwConfirm}
+                onChange={(e) => setPwConfirm(e.target.value)}
+                required
+                minLength={8}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                autoComplete="new-password"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="submit"
+                disabled={pwLoading}
+                className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+              >
+                {pwLoading ? 'Saving…' : 'Update password'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPwStep(1);
+                  setPwOtp('');
+                  setPwNew('');
+                  setPwConfirm('');
+                  setPwError('');
+                  setPwMsg('');
+                }}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Back
+              </button>
+            </div>
+          </form>
+        )}
       </div>
 
       {showUploadModal && (

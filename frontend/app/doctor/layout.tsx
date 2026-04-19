@@ -16,17 +16,20 @@ export default function DoctorLayout({
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const isPublicDoctorAuth =
+    pathname === '/doctor/login' || pathname === '/doctor/forgot-password';
+
   useEffect(() => {
     if (!loading) {
-      if (!isAuthenticated && pathname !== '/doctor/login') {
+      if (!isAuthenticated && !isPublicDoctorAuth) {
         router.push('/doctor/login');
       } else if (isAuthenticated && !isDoctor && pathname.startsWith('/doctor')) {
         router.push('/admin/dashboard');
-      } else if (isAuthenticated && isDoctor && pathname === '/doctor/login') {
+      } else if (isAuthenticated && isDoctor && isPublicDoctorAuth) {
         router.push('/doctor/dashboard');
       }
     }
-  }, [isAuthenticated, loading, pathname, router, isDoctor]);
+  }, [isAuthenticated, loading, pathname, router, isDoctor, isPublicDoctorAuth]);
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -44,11 +47,11 @@ export default function DoctorLayout({
     );
   }
 
-  if (!isAuthenticated && pathname !== '/doctor/login') {
+  if (!isAuthenticated && !isPublicDoctorAuth) {
     return null;
   }
 
-  if (pathname === '/doctor/login') {
+  if (isPublicDoctorAuth) {
     return <>{children}</>;
   }
 

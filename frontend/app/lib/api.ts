@@ -48,7 +48,18 @@ class ApiClient {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'An error occurred' }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+      let msg: string;
+      if (typeof error.message === 'string') {
+        msg = error.message;
+      } else if (Array.isArray(error.message)) {
+        msg = error.message.map((m: unknown) => String(m)).join(', ');
+      } else {
+        msg = `HTTP error! status: ${response.status}`;
+      }
+      if (error.seconds_remaining != null) {
+        msg = `${msg} Retry in ${error.seconds_remaining}s.`;
+      }
+      throw new Error(msg);
     }
 
     return response.json();
@@ -81,8 +92,30 @@ export const api = new ApiClient(BASE_URL);
 
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post<{ access_token: string; user: { id: string; email: string; role: string } }>('/auth/login', { email, password }),
-  
+    api.post<{
+      access_token: string;
+      user: { id: string; email: string; role: string; doctorId?: string | null };
+    }>('/auth/login', { email, password }),
+
+  forgotPassword: (email: string) =>
+    api.post<{ message: string }>('/auth/forgot-password', { email }),
+
+  resetPassword: (email: string, otp: string, newPassword: string) =>
+    api.post<{
+      access_token: string;
+      user: { id: string; email: string; role: string; doctorId?: string | null };
+    }>('/auth/reset-password', { email, otp, newPassword }),
+
+  sendChangePasswordOtp: (oldPassword: string) =>
+    api.post<{ message: string }>('/auth/send-change-password-otp', { oldPassword }),
+
+  changePassword: (oldPassword: string, newPassword: string, otp: string) =>
+    api.post<{ message: string }>('/auth/change-password', {
+      oldPassword,
+      newPassword,
+      otp,
+    }),
+
   logout: () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');

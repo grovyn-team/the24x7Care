@@ -9,7 +9,7 @@ export class RegisterDto {
 
   @ApiProperty({ example: 'password123' })
   @IsString()
-  @MinLength(6)
+  @MinLength(8)
   password: string;
 
   @ApiProperty({ enum: UserRole, example: UserRole.DOCTOR })

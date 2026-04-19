@@ -30,6 +30,7 @@ interface Doctor {
   mobile: string;
   employee_id: string;
   gender: string;
+  portal_email?: string | null;
   queries_assigned?: any[] | string[];
 }
 
@@ -48,6 +49,9 @@ interface AddDoctorFormData {
   employee_id: string;
   gender: Gender;
   avatar_url?: string;
+  login_email: string;
+  login_password: string;
+  send_portal_welcome_email: boolean;
 }
 
 export default function UsersPage() {
@@ -78,6 +82,9 @@ export default function UsersPage() {
     employee_id: '',
     gender: Gender.MALE,
     avatar_url: '',
+    login_email: '',
+    login_password: '',
+    send_portal_welcome_email: false,
   });
   const [formLoading, setFormLoading] = useState(false);
 
@@ -231,6 +238,7 @@ export default function UsersPage() {
         'Mobile': doctor.mobile,
         'Employee ID': doctor.employee_id,
         'Gender': doctor.gender,
+        'Portal email': doctor.portal_email || '',
       }));
 
       const ok = exportToCSV(exportData, 'doctors', [
@@ -239,6 +247,7 @@ export default function UsersPage() {
         'Mobile',
         'Employee ID',
         'Gender',
+        'Portal email',
       ]);
       if (ok) toast.success('Doctor list exported.');
       else toast.info('No data to export.');
@@ -257,6 +266,9 @@ export default function UsersPage() {
     employee_id: '',
     gender: Gender.MALE,
     avatar_url: '',
+    login_email: '',
+    login_password: '',
+    send_portal_welcome_email: false,
   });
 
   const openAddDoctorModal = () => {
@@ -274,6 +286,9 @@ export default function UsersPage() {
       employee_id: doctor.employee_id,
       gender: doctor.gender === Gender.FEMALE ? Gender.FEMALE : Gender.MALE,
       avatar_url: '',
+      login_email: doctor.portal_email || '',
+      login_password: '',
+      send_portal_welcome_email: false,
     });
     setShowAddModal(true);
   };
@@ -287,11 +302,26 @@ export default function UsersPage() {
 
   const handleDoctorFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const le = String(formData.login_email || '').trim();
+    const lp = String(formData.login_password || '').trim();
+    if (!editingDoctorId && ((le && !lp) || (!le && lp))) {
+      toast.error('To enable portal login on create, provide both portal email and password (or leave both empty).');
+      return;
+    }
     setFormLoading(true);
     try {
-      const dataToSend = { ...formData };
+      const dataToSend: Record<string, unknown> = { ...formData };
       if (!dataToSend.avatar_url) {
         delete dataToSend.avatar_url;
+      }
+      if (!String(dataToSend.login_email || '').trim()) {
+        delete dataToSend.login_email;
+      }
+      if (!String(dataToSend.login_password || '').trim()) {
+        delete dataToSend.login_password;
+      }
+      if (!dataToSend.login_password) {
+        delete dataToSend.send_portal_welcome_email;
       }
 
       if (editingDoctorId) {
@@ -326,8 +356,9 @@ export default function UsersPage() {
       const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
       if (values.length < 5) continue;
 
-      const [name, specialization, mobile, employee_id, gender, avatar_url] = values;
-      
+      const [name, specialization, mobile, employee_id, gender, avatar_url, login_email, login_password] =
+        values;
+
       if (!/^[0-9]{10}$/.test(mobile)) {
         continue;
       }
@@ -341,6 +372,9 @@ export default function UsersPage() {
         employee_id,
         gender: normalizedGender,
         avatar_url: avatar_url || undefined,
+        login_email: (login_email || '').trim(),
+        login_password: (login_password || '').trim(),
+        send_portal_welcome_email: false,
       });
     }
 
@@ -632,6 +666,64 @@ export default function UsersPage() {
                       placeholder="https://example.com/avatar.jpg"
                     />
                   </div>
+
+                  <div>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Doctor portal login
+                    </p>
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="login_email" className="mb-1.5 block text-sm font-medium text-gray-800">
+                          Portal email
+                        </label>
+                        <input
+                          id="login_email"
+                          type="email"
+                          value={formData.login_email}
+                          onChange={(e) => setFormData({ ...formData, login_email: e.target.value })}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                          placeholder="doctor@clinic.com"
+                          autoComplete="off"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          {editingDoctorId
+                            ? 'Change email alone, or set a new password (min 8 chars). Use both together to replace credentials.'
+                            : 'Optional. If set, password is required (min 8 characters).'}
+                        </p>
+                      </div>
+                      <div>
+                        <label htmlFor="login_password" className="mb-1.5 block text-sm font-medium text-gray-800">
+                          Portal password
+                        </label>
+                        <input
+                          id="login_password"
+                          type="password"
+                          value={formData.login_password}
+                          onChange={(e) => setFormData({ ...formData, login_password: e.target.value })}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                          placeholder={editingDoctorId ? 'Leave blank to keep current' : 'Min 8 characters if portal enabled'}
+                          autoComplete="new-password"
+                          minLength={editingDoctorId ? undefined : 8}
+                        />
+                      </div>
+                      {!editingDoctorId ? (
+                        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={formData.send_portal_welcome_email}
+                            onChange={(e) =>
+                              setFormData({ ...formData, send_portal_welcome_email: e.target.checked })
+                            }
+                            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-teal-700 focus:ring-teal-600"
+                          />
+                          <span>
+                            Email welcome instructions to the doctor (requires Resend /{' '}
+                            <code className="text-xs">CARE247_RESEND_API_KEY</code> on the server)
+                          </span>
+                        </label>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -708,6 +800,9 @@ export default function UsersPage() {
                   Employee ID
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Portal email
+                </th>
+                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Queries Assigned
                 </th>
                 {isAdmin ? (
@@ -720,7 +815,7 @@ export default function UsersPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {doctors.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 7 : 5} className="px-3 lg:px-6 py-8 text-center text-gray-500">
+                  <td colSpan={isAdmin ? 8 : 6} className="px-3 lg:px-6 py-8 text-center text-gray-500">
                     No doctors found
                   </td>
                 </tr>
@@ -749,6 +844,9 @@ export default function UsersPage() {
                     </td>
                     <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {doctor.employee_id}
+                    </td>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {doctor.portal_email || '—'}
                     </td>
                     <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">

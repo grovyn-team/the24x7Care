@@ -14,6 +14,8 @@ import { AdminModule } from './admin/admin.module';
 import { HeroDiscountModule } from './hero-discount/hero-discount.module';
 import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
 import { SiteSettingsModule } from './site-settings/site-settings.module';
+import { RedisModule } from './redis/redis.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { SiteSettingsModule } from './site-settings/site-settings.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    RedisModule,
+    EmailModule,
     MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/the247care'),
     AuthModule,
     EnquiriesModule,

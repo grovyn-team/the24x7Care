@@ -1,4 +1,4 @@
-import { IsString, Matches, IsEnum, IsOptional } from 'class-validator';
+import { IsString, Matches, IsEnum, IsOptional, IsEmail, MinLength, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Gender } from '../../schemas/doctor.schema';
 
@@ -28,4 +28,29 @@ export class CreateDoctorDto {
   @IsOptional()
   @IsString()
   avatar_url?: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'Doctor portal login email (must be used with login_password)',
+  })
+  @IsOptional()
+  @IsEmail()
+  login_email?: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'Initial portal password, min 8 characters (must be used with login_email)',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  login_password?: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'If true and Resend is configured, sends welcome email with temporary password',
+  })
+  @IsOptional()
+  @IsBoolean()
+  send_portal_welcome_email?: boolean;
 }
